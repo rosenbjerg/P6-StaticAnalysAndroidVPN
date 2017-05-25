@@ -1,13 +1,14 @@
 using System.Text.RegularExpressions;
 
-namespace StatiskAnalyse
+namespace StatiskAnalyse.SearchHandling.Structure
 {
     public abstract class RegexSearchHandler : SearchHandler
     {
-        public Regex Regex { get; }
         protected RegexSearchHandler(Regex regex)
         {
             Regex = regex;
         }
+
+        public Regex Regex { get; }
     }
 }

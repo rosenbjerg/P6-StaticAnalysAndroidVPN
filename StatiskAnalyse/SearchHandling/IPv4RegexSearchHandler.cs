@@ -3,14 +3,26 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using StatiskAnalyse.ResultWrappers;
+using StatiskAnalyse.SearchHandling.Structure;
 
-namespace StatiskAnalyse
+namespace StatiskAnalyse.SearchHandling
 {
-    class IPv4RegexSearchHandler : RegexSearchHandler
+    internal class IPv4RegexSearchHandler : RegexSearchHandler
     {
+        private static readonly WebClient _wc = new WebClient();
+
+        private static readonly string[] _dnsServerIps =
+        {
+            "8.8.8.8",
+            "8.8.4.4",
+            "8.8.0.0",
+            "4.2.2.2",
+            "4.2.2.4"
+        };
+
         public IPv4RegexSearchHandler() : base(new Regex("[0-9]{1,3}(\\.[0-9]{1,3}){3}", RegexOptions.Compiled))
         {
-
         }
 
         public override string OutputName { get; } = "IPv4";
@@ -18,10 +30,10 @@ namespace StatiskAnalyse
         public override List<object> Process(IEnumerable<Use> results)
         {
             var ips = results.Where(u => IPAddress.TryParse(u.SampleLine, out IPAddress ip));
-            return ips.Select(i => (object) new IpSearchResult(i.SampleLine, GetCountry(i.SampleLine), i.File, i.Line, i.Index)).Distinct().ToList();
+            return ips.Select(i => (object) new IpSearchResult(i.SampleLine, GetCountry(i.SampleLine), i.File, i.Line,
+                i.Index)).Distinct().ToList();
         }
 
-        private static WebClient _wc = new WebClient();
         private static string GetCountry(string ip)
         {
             if (ip == "127.0.0.1")
@@ -36,13 +48,5 @@ namespace StatiskAnalyse
             var deez = JsonConvert.DeserializeObject<FreeGeoIpResponse>(json);
             return deez.country_name;
         }
-        private static readonly string[] _dnsServerIps = new[]
-        {
-            "8.8.8.8",
-            "8.8.4.4",
-            "8.8.0.0",
-            "4.2.2.2",
-            "4.2.2.4"
-        };
     }
 }

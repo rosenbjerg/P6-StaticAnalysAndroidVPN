@@ -1,6 +1,6 @@
-namespace StatiskAnalyse
+namespace StatiskAnalyse.ResultWrappers
 {
-    class IpSearchResult : FileResultWrapper
+    internal class IpSearchResult : FileResultWrapper
     {
         public IpSearchResult(string ip, string country, string file, int line, int index)
         {

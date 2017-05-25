@@ -1,6 +1,6 @@
-namespace StatiskAnalyse
+namespace StatiskAnalyse.ResultWrappers
 {
-    class EntropyResult : FileResultWrapper
+    internal class EntropyResult : FileResultWrapper
     {
         public EntropyResult(string word, double entropy, string file, int line, int index)
         {

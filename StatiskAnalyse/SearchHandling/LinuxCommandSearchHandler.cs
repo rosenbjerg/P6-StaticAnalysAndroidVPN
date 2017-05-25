@@ -1,14 +1,27 @@
 using System.Collections.Generic;
 using System.Linq;
+using StatiskAnalyse.ResultWrappers;
+using StatiskAnalyse.SearchHandling.Structure;
 
-namespace StatiskAnalyse
+namespace StatiskAnalyse.SearchHandling
 {
-    class LinuxCommandSearchHandler : ConstantStringSearchHandler
+    internal class LinuxCommandSearchHandler : ConstantStringSearchHandler
     {
+        private readonly IEnumerable<string> _commands;
+
+        public LinuxCommandSearchHandler(IEnumerable<string> commands)
+        {
+            _commands = commands;
+        }
+
         public override string OutputName { get; } = "LinuxCommands";
+
         public override List<object> Process(IEnumerable<Use> results)
         {
-            return results.Where(x => ApkAnalysis.LinuxCommandList.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " "))).Cast<object>().ToList();
+            var cmds = results.Where(x => _commands.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " ")))
+                .Cast<object>().ToList();
+            // TODO More verification of the string actually being used with Runtime->exec
+            return cmds;
         }
     }
 }

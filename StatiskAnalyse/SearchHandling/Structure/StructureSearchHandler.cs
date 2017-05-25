@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace StatiskAnalyse
+namespace StatiskAnalyse.SearchHandling.Structure
 {
     public abstract class StructureSearchHandler
     {
@@ -8,4 +8,5 @@ namespace StatiskAnalyse
 
         public abstract List<object> Process(ClassFileDirectory rootDir);
     }
+    
 }

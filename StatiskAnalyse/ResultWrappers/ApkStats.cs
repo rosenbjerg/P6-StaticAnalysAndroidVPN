@@ -1,4 +1,4 @@
-namespace StatiskAnalyse
+namespace StatiskAnalyse.ResultWrappers
 {
     internal class ApkStats
     {

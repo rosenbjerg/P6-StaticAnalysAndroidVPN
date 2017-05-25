@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace StatiskAnalyse
 {
     internal class AndroidManifestExtracter
     {
-
         public static string ExtractXmlTree(string apkPath, string outPath)
         {
             var cmd = $"dump xmltree \"{apkPath}\" AndroidManifest.xml";

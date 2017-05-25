@@ -6,14 +6,14 @@ using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse.SearchHandling
 {
-    internal class UrlRegexSearchHandler : RegexSearchHandler
+    internal class StringRegexSearchHandler : RegexSearchHandler
     {
-        public UrlRegexSearchHandler() : base(new Regex(
-            "https?:\\/\\/([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)*\\/?", RegexOptions.Compiled))
+        public StringRegexSearchHandler(string outputName, IEnumerable<string> strings) : base(new Regex(string.Join("|",strings.Select(s => "("+s+")"))))
         {
+            OutputName = outputName;
         }
 
-        public override string OutputName { get; } = "Urls";
+        public override string OutputName { get; }
 
         public override List<object> Process(IEnumerable<Use> results)
         {

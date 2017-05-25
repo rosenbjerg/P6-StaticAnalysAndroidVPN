@@ -71,12 +71,16 @@
   <ItemGroup>
     <Compile Include="AndroidManifestExtracter.cs" />
     <Compile Include="ApkAnalyzer.cs" />
+    <Compile Include="SearchHandling\LibrarySearchHandler.cs" />
+    <Compile Include="SearchHandling\StringRegexSearchHandler.cs" />
+    <Compile Include="SearchHandling\StringSearchHandler.cs" />
     <Compile Include="SearchHandling\Structure\ConstantStringSearchHandler.cs" />
     <Compile Include="SearchHandling\HighEntropyWordSearchHandler.cs" />
     <Compile Include="SearchHandling\HighEntropyWordWGoogleSearchHandler.cs" />
     <Compile Include="SearchHandling\IPv4RegexSearchHandler.cs" />
     <Compile Include="SearchHandling\LinuxCommandSearchHandler.cs" />
     <Compile Include="SearchHandling\Structure\ManifestSearchHandler.cs" />
+    <Compile Include="SearchHandling\PermissionSearchHandler.cs" />
     <Compile Include="SearchHandling\Structure\RegexSearchHandler.cs" />
     <Compile Include="ResultWrappers\ApkStats.cs" />
     <Compile Include="ClassFile.cs" />
@@ -92,7 +96,7 @@
     <Compile Include="ResultWrappers\Use.cs" />
     <Compile Include="SearchHandling\Structure\SearchHandler.cs" />
     <Compile Include="SearchHandling\Structure\StructureSearchHandler.cs" />
-    <Compile Include="SearchHandling\Structure\TrackerSearchHandler.cs" />
+    <Compile Include="SearchHandling\TrackerSearchHandler.cs" />
     <Compile Include="SearchHandling\UrlRegexSearchHandler.cs" />
   </ItemGroup>
   <ItemGroup>

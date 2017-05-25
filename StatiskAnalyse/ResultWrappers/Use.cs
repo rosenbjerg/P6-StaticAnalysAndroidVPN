@@ -1,7 +1,8 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-namespace StatiskAnalyse
+using Newtonsoft.Json;
+
+namespace StatiskAnalyse.ResultWrappers
 {
     public class Use : FileResultWrapper
     {
@@ -37,6 +38,4 @@ namespace StatiskAnalyse
             }
         }
     }
-
-    
 }

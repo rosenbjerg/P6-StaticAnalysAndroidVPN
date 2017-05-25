@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using StatiskAnalyse.ResultWrappers;
+using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse
 {
@@ -121,7 +123,7 @@ namespace StatiskAnalyse
         {
             return Name;
         }
-        
+
         public List<Tuple<string, List<object>>> FindUses(List<RegexSearchHandler> lookFor)
         {
             var l = new object();
@@ -133,7 +135,6 @@ namespace StatiskAnalyse
                 {
                     retVal.Add(new Tuple<string, List<object>>(p.OutputName, list));
                 }
-                
             });
             return retVal;
         }

@@ -1,4 +1,6 @@
-namespace StatiskAnalyse
+namespace StatiskAnalyse.SearchHandling.Structure
 {
-    public abstract class ConstantStringSearchHandler : SearchHandler { }
+    public abstract class ConstantStringSearchHandler : SearchHandler
+    {
+    }
 }

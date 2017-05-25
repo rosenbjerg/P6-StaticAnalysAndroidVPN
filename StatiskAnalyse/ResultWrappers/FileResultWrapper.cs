@@ -1,4 +1,4 @@
-namespace StatiskAnalyse
+namespace StatiskAnalyse.ResultWrappers
 {
     public class FileResultWrapper : IResult
     {
@@ -9,11 +9,9 @@ namespace StatiskAnalyse
 
     public interface IRegexResult
     {
-        
     }
 
     public interface IResult
     {
-        
     }
 }

@@ -1,12 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using StatiskAnalyse.ResultWrappers;
+using StatiskAnalyse.SearchHandling.Structure;
 
-namespace StatiskAnalyse
+namespace StatiskAnalyse.SearchHandling
 {
-    class HighEntropyWordSearchHandler : ConstantStringSearchHandler
+    internal class HighEntropyWordSearchHandler : ConstantStringSearchHandler
     {
+        private double _ent;
+
+        public HighEntropyWordSearchHandler(double lowestInterestingEntropy)
+        {
+            _ent = lowestInterestingEntropy;
+        }
+
         public override string OutputName { get; } = "HighEntropyWords";
+
         public override List<object> Process(IEnumerable<Use> results)
         {
             var stringSearchResults = results.Where(u => u.SampleLine.Length > 16 &&
@@ -25,11 +35,12 @@ namespace StatiskAnalyse
             return stringSearchResults
                 .Where(x => !x.SampleLine.Contains(" ") && !x.SampleLine.Contains("abcdefghijklmnopqrstuvwxyz"))
                 .Select(x => new EntropyResult(x.SampleLine, GetEntropy(x.SampleLine), x.File, x.Line, x.Index))
-                .Where(x => x.Entropy > ApkAnalysis.LowestInterestingEntropy)
+                .Where(x => x.Entropy >= _ent)
                 .OrderByDescending(x => x.Entropy)
                 .Cast<object>()
                 .ToList();
         }
+
         private static double GetEntropy(string s)
         {
             var map = new Dictionary<char, int>();
@@ -43,7 +54,7 @@ namespace StatiskAnalyse
             var len = s.Length;
             foreach (var item in map)
             {
-                var frequency = (double)item.Value / len;
+                var frequency = (double) item.Value / len;
                 result -= frequency * (Math.Log(frequency) / Math.Log(2));
             }
 

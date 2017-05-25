@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 
-namespace StatiskAnalyse
+namespace StatiskAnalyse.ResultWrappers
 {
     public class SearchResult : IResult
     {
@@ -13,8 +12,5 @@ namespace StatiskAnalyse
         {
             return $"{Pattern} : {Uses.Count} uses";
         }
-
-        
     }
-
 }

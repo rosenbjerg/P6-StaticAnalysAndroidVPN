@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using StatiskAnalyse.ResultWrappers;
 
-namespace StatiskAnalyse
+namespace StatiskAnalyse.SearchHandling.Structure
 {
     public abstract class SearchHandler
     {
