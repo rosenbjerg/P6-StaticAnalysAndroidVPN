@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StatiskAnalyse
 {
-    public class SearchResult
+    public class SearchResult : IResult
     {
         public string Pattern { get; set; }
         public int UseCount => Uses.Count;

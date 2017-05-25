@@ -11,7 +11,7 @@ namespace StatiskAnalyse
 {
     internal class ApkAnalysis
     {
-        internal static readonly string[] Trackers;
+        internal static readonly string[] Trackers = File.ReadLines("../../trackers.txt").ToArray();
 
         public static string BakSmaliPath = Path.GetFullPath("../../TOOLS/baksmali-2.2.1.jar");
 
@@ -19,12 +19,7 @@ namespace StatiskAnalyse
         //public static string AaptPah = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Android\\sdk\\build-tools\\25.0.2\\aapt.exe";
 
         public static string SavePath = Path.GetFullPath("/STAN");
-
-        static ApkAnalysis()
-        {
-            Trackers = File.ReadLines("../../trackers.txt").ToArray();
-        }
-
+        
         public static double LowestInterestingEntropy { get; set; }
 
         public static string[] CriticalLibs { get; set; } =
@@ -36,6 +31,74 @@ namespace StatiskAnalyse
             "okhttp",
             "javax"
         };
+
+
+        public static int MaxSearchesPerApp { get; set; } = 25;
+
+        public ApkStats Stats { get; set; }
+        public List<string> CriticalLibsUsed { get; } = new List<string>();
+        public List<string> TrackersUsed { get; } = new List<string>();
+        public string ManifestXmlTree { get; set; } 
+        public List<Use> LinuxCommands { get; set; } = new List<Use>();
+        public List<GoogleSearch> GoogleSearchResults { get; set; } = new List<GoogleSearch>();
+        public List<EntropyResult> HighEntropyWords { get; set; } = new List<EntropyResult>();
+        private List<IpSearchResult> IPs { get; set; } = new List<IpSearchResult>();
+        public List<SearchResult> Results { get; private set; }
+        public ClassFileDirectory Root { get; private set; }
+        public string Name { get; private set; }
+        
+        private void Clear()
+        {
+            Root.Directories.Clear();
+            Root.Files.Clear();
+            CriticalLibsUsed.Clear();
+            TrackersUsed.Clear();
+            //LinuxCommands.Clear();
+            //IPs.Clear();
+            //GoogleSearchResults.Clear();
+            //HighEntropyWords.Clear();
+            ManifestXmlTree.Clear();
+            //Results.Clear();
+        }
+        
+
+        public static ApkAnalysis LoadApkBakSmali(string path, params string[] lookFor)
+        {
+            var aa = InternalSmaliToolChain(path);
+            aa.Results = aa.Root.FindUses(lookFor);
+            return aa;
+        }
+
+        public static void ProcessApk(string path, SearchHandlerContainer container)
+        {
+            var aa = InternalSmaliToolChain(path);
+            aa.StringConstants = aa.Root.FindUses(new Regex("\".+\"", RegexOptions.Compiled)).FirstOrDefault().Uses;
+            var tu = aa.Root.FindUses(container.RegexSearchHandlers);
+            foreach (var tuple in tu)
+                SaveFile(aa.Name, tuple);
+            if (container.StructureSearchHandlers.Count != 0)
+            {
+                var ntu = container.StructureSearchHandlers.Select(t => new Tuple<string, List<object>>(t.OutputName, t.Process(aa.Root)));
+                foreach (var tuple in ntu)
+                    SaveFile(aa.Name, tuple);
+            }
+            if (container.ConstantStringSearchHandlers.Count != 0)
+            {
+                var ntu = container.ConstantStringSearchHandlers.Select(t => new Tuple<string, List<object>>(t.OutputName, t.Process(aa.StringConstants)));
+                foreach (var tuple in ntu)
+                    SaveFile(aa.Name, tuple);
+            }
+            SaveFile(aa.Name, new Tuple<string, List<object>>("StringConstants", aa.StringConstants.Cast<object>().ToList()));
+            aa.Clear();
+        }
+
+        public List<Use> StringConstants { get; set; }
+
+        private static void SaveFile(string apk, Tuple<string, List<object>> tuple)
+        {
+            File.WriteAllText(Path.Combine(SavePath, apk, tuple.Item1 + ".json"),
+                JsonConvert.SerializeObject(tuple.Item2, Formatting.Indented));
+        }
 
         public static string[] LinuxCommandList { get; set; } =
         {
@@ -174,84 +237,6 @@ namespace StatiskAnalyse
             "xargs"
         };
 
-        public static int MaxSearchesPerApp { get; set; } = 25;
-
-        public ApkStats Stats { get; set; }
-        public List<string> CriticalLibsUsed { get; } = new List<string>();
-        public List<string> TrackersUsed { get; } = new List<string>();
-        public List<string> PermissionsUsed { get; set; } = new List<string>();
-        public List<Use> LinuxCommands { get; set; } = new List<Use>();
-        public List<GoogleSearch> GoogleSearchResults { get; set; } = new List<GoogleSearch>();
-        public List<EntropyResult> HighEntropyWords { get; set; } = new List<EntropyResult>();
-        private List<IpSearchResult> IPs { get; set; } = new List<IpSearchResult>();
-        public List<SearchResult> Results { get; private set; }
-        public ClassFileDirectory Root { get; private set; }
-        public string Name { get; private set; }
-
-        public void GenerateJson()
-        {
-            File.WriteAllText(Path.Combine(SavePath, Name, "permissions.json"),
-                JsonConvert.SerializeObject(PermissionsUsed, Formatting.Indented));
-
-            File.WriteAllText(Path.Combine(SavePath, Name, "stats.json"),
-                JsonConvert.SerializeObject(Stats, Formatting.Indented));
-
-            File.WriteAllText(Path.Combine(SavePath, Name, "libraries.json"),
-                JsonConvert.SerializeObject(CriticalLibsUsed, Formatting.Indented));
-
-            File.WriteAllText(Path.Combine(SavePath, Name, "ips.json"),
-                JsonConvert.SerializeObject(IPs.OrderBy(x => x.Country), Formatting.Indented));
-
-            File.WriteAllText(Path.Combine(SavePath, Name, "trackers.json"),
-                JsonConvert.SerializeObject(TrackersUsed, Formatting.Indented));
-
-            File.WriteAllText(Path.Combine(SavePath, Name, "googlesearch.json"),
-                JsonConvert.SerializeObject(GoogleSearchResults, Formatting.Indented));
-
-            File.WriteAllText(Path.Combine(SavePath, Name, "highentropywords.json"),
-                JsonConvert.SerializeObject(HighEntropyWords, Formatting.Indented));
-
-            File.WriteAllText(Path.Combine(SavePath, Name, "linuxcommands.json"),
-                JsonConvert.SerializeObject(LinuxCommands, Formatting.Indented));
-
-            File.WriteAllText(Path.Combine(SavePath, Name, "stringsearch.json"),
-                JsonConvert.SerializeObject(Results, Formatting.Indented));
-            Clear();
-        }
-
-        private void Clear()
-        {
-            Root.Directories.Clear();
-            Root.Files.Clear();
-            CriticalLibsUsed.Clear();
-            TrackersUsed.Clear();
-            LinuxCommands.Clear();
-            IPs.Clear();
-            GoogleSearchResults.Clear();
-            HighEntropyWords.Clear();
-            PermissionsUsed.Clear();
-            Results.Clear();
-        }
-        
-
-        public static ApkAnalysis LoadApkBakSmali(string path, params string[] lookFor)
-        {
-            var aa = InternalSmaliToolChain(path);
-            aa.Results = aa.Root.FindUses(lookFor);
-            return aa;
-        }
-
-        //public static ApkAnalysis LoadApkBakSmali(string path, List<SearchHandler<Use>> lookFor)
-        //{
-        //    var aa = InternalSmaliToolChain(path);
-        //    aa.StringConstants = aa.Root.FindUses(new Regex("\".+\"", RegexOptions.Compiled));
-        //    aa.Results = aa.Root.FindUses(lookFor);
-        //    return aa;
-        //}
-
-        public List<SearchResult> StringConstants { get; set; }
-
-
         public static ApkAnalysis LoadApkBakSmali(string path, params Regex[] lookFor)
         {
             var aa = InternalSmaliToolChain(path);
@@ -332,7 +317,7 @@ namespace StatiskAnalyse
             var o = Path.Combine(dir, "out");
             Directory.CreateDirectory(dir);
 
-            aa.PermissionsUsed = AndroidPermissionExtracter.ExtractPermissions(path, dir);
+            aa.ManifestXmlTree = AndroidManifestExtracter.ExtractXmlTree(path, dir);
             if (!Directory.Exists(o))
                 BakSmali(path, o);
 
@@ -410,7 +395,7 @@ namespace StatiskAnalyse
                 aa.CriticalLibsUsed.Add(saveCLib);
             }
         }
-        
+
         private static WebClient _wc = new WebClient();
 
         private static string GetCountry(string ip)

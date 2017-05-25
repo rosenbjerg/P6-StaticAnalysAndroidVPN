@@ -69,20 +69,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AndroidPermissionExtracter.cs" />
+    <Compile Include="AndroidManifestExtracter.cs" />
     <Compile Include="ApkAnalyzer.cs" />
+    <Compile Include="SearchHandling\Structure\ConstantStringSearchHandler.cs" />
+    <Compile Include="SearchHandling\HighEntropyWordSearchHandler.cs" />
+    <Compile Include="SearchHandling\HighEntropyWordWGoogleSearchHandler.cs" />
+    <Compile Include="SearchHandling\IPv4RegexSearchHandler.cs" />
+    <Compile Include="SearchHandling\LinuxCommandSearchHandler.cs" />
+    <Compile Include="SearchHandling\Structure\ManifestSearchHandler.cs" />
+    <Compile Include="SearchHandling\Structure\RegexSearchHandler.cs" />
     <Compile Include="ResultWrappers\ApkStats.cs" />
     <Compile Include="ClassFile.cs" />
     <Compile Include="ClassFileDirectory.cs" />
     <Compile Include="ResultWrappers\EntropyResult.cs" />
     <Compile Include="ResultWrappers\FileResultWrapper.cs" />
-    <Compile Include="FreeGeoIpResponse.cs" />
+    <Compile Include="ResultWrappers\FreeGeoIpResponse.cs" />
     <Compile Include="ResultWrappers\GoogleSearch.cs" />
     <Compile Include="ResultWrappers\IpSearchResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResultWrappers\SearchResult.cs" />
     <Compile Include="ResultWrappers\Use.cs" />
+    <Compile Include="SearchHandling\Structure\SearchHandler.cs" />
+    <Compile Include="SearchHandling\Structure\StructureSearchHandler.cs" />
+    <Compile Include="SearchHandling\Structure\TrackerSearchHandler.cs" />
+    <Compile Include="SearchHandling\UrlRegexSearchHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

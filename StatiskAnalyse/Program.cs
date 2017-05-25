@@ -3,31 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 
 namespace StatiskAnalyse
 {
-    //public abstract class SearchHandler<TSearchResult> where TSearchResult : FileResultWrapper
-    //{
-    //    private Func<List<TSearchResult>, List<TSearchResult>> _filter;
-
-    //    protected SearchHandler(Regex regex, Func<List<TSearchResult>, List<TSearchResult>> filter)
-    //    {
-    //        Regex = regex;
-    //        _filter = filter;
-    //    }
-    //    public Regex Regex { get; }
-    //    public List<TSearchResult> Results { get; } = new List<TSearchResult>();
-
-    //    protected static void SaveResults(string outputname, string apkName, object resultContainer)
-    //    {
-
-    //        File.WriteAllText(Path.Combine(ApkAnalysis.SavePath, apkName, outputname + ".json"),
-    //            JsonConvert.SerializeObject(resultContainer, Formatting.Indented));
-    //    }
-    //}
-    
-
+    public class SearchHandlerContainer
+    {
+        public List<RegexSearchHandler> RegexSearchHandlers { get; } = new List<RegexSearchHandler>();
+        public List<ConstantStringSearchHandler> ConstantStringSearchHandlers { get; } = new List<ConstantStringSearchHandler>();
+        public List<ManifestSearchHandler> ManifestSearchHandlers { get; } = new List<ManifestSearchHandler>();
+        public List<StructureSearchHandler> StructureSearchHandlers { get; } = new List<StructureSearchHandler>();
+    }
     internal class Program
     {
         private static void Main(string[] args)
@@ -35,7 +20,7 @@ namespace StatiskAnalyse
             GoogleSearch.ApiKey = "AIzaSyDrqFQq2jnMtCtiNPiI5D6KDCWJT_Fyrt4";
             ApkAnalysis.LowestInterestingEntropy = 4.75;
             ApkAnalysis.MaxSearchesPerApp = 1;
-            ApkAnalysis.SavePath = "R:\\test";
+            ApkAnalysis.SavePath = "R:\\test2";
             var ApkFolder = "C:\\Users\\Malte\\Desktop\\apks";
 
             var unwantedLinuxCmds = new[]
@@ -81,12 +66,28 @@ namespace StatiskAnalyse
             int done = 0, total = apks.Count();
             var tot = 100.0 / total;
             var starttime = DateTime.UtcNow;
+            var sd = new SearchHandlerContainer
+            {
+                RegexSearchHandlers =
+                {
+                    new IPv4RegexSearchHandler(),
+                    new UrlRegexSearchHandler()
+                },
+                ConstantStringSearchHandlers =
+                {
+                    new HighEntropyWordSearchHandler(),
+                    new HighEntropyWordWGoogleSearchHandler(),
+                    new LinuxCommandSearchHandler()
+                }
+            };
+
 
             Console.WriteLine($"0/{total} - 0%");
             foreach (var apk in apks)
                 try
                 {
-                    ApkAnalysis.LoadApkBakSmali(apk, regexes).GenerateJson();
+                    ApkAnalysis.ProcessApk(apk, sd);
+                    //ApkAnalysis.ProcessApk(apk, regexes).GenerateJson();
                 }
                 catch (Exception ex)
                 {

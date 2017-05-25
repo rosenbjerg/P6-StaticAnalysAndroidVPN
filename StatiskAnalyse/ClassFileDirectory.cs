@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -120,21 +121,21 @@ namespace StatiskAnalyse
         {
             return Name;
         }
-
-        //public List<SearchResult> FindUses(List<SearchHandler<Use>> lookFor)
-        //{
-        //    var retVal = new List<SearchResult>();
-        //    Parallel.ForEach(lookFor, p =>
-        //    {
-        //        var pattern = p.Regex;
-        //        var e = new SearchResult
-        //        {
-        //            Pattern = pattern.ToString()
-        //        };
-        //        e.Uses.AddRange(FindUsesInDir(this, pattern));
-        //        p.Results.Add(e);
-        //    });
-        //    return retVal;
-        //}
+        
+        public List<Tuple<string, List<object>>> FindUses(List<RegexSearchHandler> lookFor)
+        {
+            var l = new object();
+            var retVal = new List<Tuple<string, List<object>>>();
+            Parallel.ForEach(lookFor, p =>
+            {
+                var list = p.Process(FindUsesInDir(this, p.Regex));
+                lock (l)
+                {
+                    retVal.Add(new Tuple<string, List<object>>(p.OutputName, list));
+                }
+                
+            });
+            return retVal;
+        }
     }
 }

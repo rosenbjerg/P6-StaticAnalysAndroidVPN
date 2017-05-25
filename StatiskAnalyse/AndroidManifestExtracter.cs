@@ -7,11 +7,10 @@ using System.Text.RegularExpressions;
 
 namespace StatiskAnalyse
 {
-    internal class AndroidPermissionExtracter
+    internal class AndroidManifestExtracter
     {
-        private static readonly Regex PermRegex = new Regex("android.permission.([A-Z_]+)", RegexOptions.Compiled);
 
-        public static List<string> ExtractPermissions(string apkPath, string outPath)
+        public static string ExtractXmlTree(string apkPath, string outPath)
         {
             var cmd = $"dump xmltree \"{apkPath}\" AndroidManifest.xml";
             var pstart = new ProcessStartInfo(ApkAnalysis.AaptPah)
@@ -24,12 +23,9 @@ namespace StatiskAnalyse
             };
             var p = Process.Start(pstart);
             var text = p.StandardOutput.ReadToEnd();
-            var matches = PermRegex.Matches(text);
-            var list = (from Match match in matches select match.Groups[1].Value).ToList();
             p.WaitForExit();
             File.WriteAllText(Path.Combine(outPath, "AndroidManifest.xml"), text);
-            list = list.Distinct().ToList();
-            return list;
+            return text;
         }
     }
 }
