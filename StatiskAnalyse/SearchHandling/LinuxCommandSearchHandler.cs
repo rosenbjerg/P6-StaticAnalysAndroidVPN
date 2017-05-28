@@ -5,7 +5,7 @@ using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse.SearchHandling
 {
-    internal class LinuxCommandSearchHandler : ConstantStringSearchHandler
+    internal class LinuxCommandSearchHandler : IConstantStringSearchHandler
     {
         private readonly IEnumerable<string> _commands;
 
@@ -14,9 +14,9 @@ namespace StatiskAnalyse.SearchHandling
             _commands = commands;
         }
 
-        public override string OutputName { get; } = "LinuxCommands";
+        public string OutputName { get; } = "LinuxCommands";
 
-        public override List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(IEnumerable<Use> results)
         {
             var cmds = results.Where(x => _commands.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " ")))
                 .Cast<object>().ToList();

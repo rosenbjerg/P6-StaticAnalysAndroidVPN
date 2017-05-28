@@ -5,7 +5,7 @@ using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse.SearchHandling
 {
-    internal class StringSearchHandler : ConstantStringSearchHandler
+    internal class StringSearchHandler : IConstantStringSearchHandler
     {
         private readonly List<string> _strings;
 
@@ -15,9 +15,9 @@ namespace StatiskAnalyse.SearchHandling
             _strings = strings.ToList();
         }
 
-        public override string OutputName { get; }
+        public string OutputName { get; }
 
-        public override List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(IEnumerable<Use> results)
         {
             return results
                 .Where(

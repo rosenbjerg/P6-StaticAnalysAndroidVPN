@@ -5,12 +5,13 @@ using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse.SearchHandling
 {
-    public class PermissionSearchHandler : ManifestSearchHandler
+    public class PermissionSearchHandler : IManifestSearchHandler
     {
         private static readonly Regex PermissionRegex = new Regex("android\\.permission\\.([A-Za-z_]+)");
-        public override string OutputName { get; } = "Permissions";
 
-        public override List<object> Process(string xmlTreeLines)
+        public string OutputName { get; } = "Permissions";
+
+        public List<object> Process(string xmlTreeLines)
         {
             var retVal = new List<object>();
             var matches = PermissionRegex.Matches(xmlTreeLines);

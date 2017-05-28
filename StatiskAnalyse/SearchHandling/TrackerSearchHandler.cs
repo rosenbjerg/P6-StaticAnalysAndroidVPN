@@ -5,12 +5,13 @@ using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse.SearchHandling
 {
-    public class TrackerSearchHandler : StructureSearchHandler
+    public class TrackerSearchHandler : IStructureSearchHandler
     {
         internal static readonly string[] Trackers = File.ReadLines("../../trackers.txt").ToArray();
-        public override string OutputName { get; } = "Trackers";
 
-        public override List<object> Process(ClassFileDirectory rootDir)
+        public string OutputName { get; } = "Trackers";
+
+        public List<object> Process(ClassFileDirectory rootDir)
         {
             var retVal = new List<object>();
             foreach (var tracker in Trackers)

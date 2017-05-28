@@ -14,9 +14,9 @@ namespace StatiskAnalyse.SearchHandling
             _max = maxSearches;
             _limit = toManyResults;
         }
-        public override string OutputName { get; } = "HighEntropyWordsWGoogle";
+        public string OutputName { get; } = "HighEntropyWordsWGoogle";
 
-        public override List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(IEnumerable<Use> results)
         {
             var hew = base.Process(results).Cast<EntropyResult>();
 

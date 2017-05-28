@@ -6,18 +6,21 @@ using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse.SearchHandling
 {
-    internal class StringRegexSearchHandler : RegexSearchHandler
+    internal class StringRegexSearchHandler : IRegexSearchHandler
     {
-        public StringRegexSearchHandler(string outputName, IEnumerable<string> strings) : base(new Regex(string.Join("|",strings.Select(s => "("+s+")"))))
+        public StringRegexSearchHandler(string outputName, IEnumerable<string> strings) 
         {
             OutputName = outputName;
+            Regex = new Regex(string.Join("|", strings.Select(s => "(" + s + ")")), RegexOptions.Compiled);
         }
+    
+        public string OutputName { get; }
 
-        public override string OutputName { get; }
-
-        public override List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(IEnumerable<Use> results)
         {
             return results.Cast<object>().ToList();
         }
+
+        public Regex Regex { get; }
     }
 }

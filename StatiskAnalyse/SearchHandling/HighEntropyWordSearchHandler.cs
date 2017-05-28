@@ -6,7 +6,7 @@ using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse.SearchHandling
 {
-    internal class HighEntropyWordSearchHandler : ConstantStringSearchHandler
+    internal class HighEntropyWordSearchHandler : IConstantStringSearchHandler
     {
         private double _ent;
 
@@ -15,9 +15,9 @@ namespace StatiskAnalyse.SearchHandling
             _ent = lowestInterestingEntropy;
         }
 
-        public override string OutputName { get; } = "HighEntropyWords";
+        public string OutputName { get; } = "HighEntropyWords";
 
-        public override List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(IEnumerable<Use> results)
         {
             var stringSearchResults = results.Where(u => u.SampleLine.Length > 16 &&
                                                          (u.SampleLine.IndexOf(" ", StringComparison.Ordinal) ==

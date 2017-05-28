@@ -4,7 +4,7 @@ using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse.SearchHandling
 {
-    public class LibrarySearchHandler : StructureSearchHandler
+    public class LibrarySearchHandler : IStructureSearchHandler
     {
         public static string[] CriticalLibs { get; set; } =
         {
@@ -16,9 +16,9 @@ namespace StatiskAnalyse.SearchHandling
             "javax"
         };
 
-        public override string OutputName { get; } = "Libraries";
+        public string OutputName { get; } = "Libraries";
 
-        public override List<object> Process(ClassFileDirectory rootDir)
+        public List<object> Process(ClassFileDirectory rootDir)
         {
             var retVal = new List<object>();
             foreach (var libs in CriticalLibs)

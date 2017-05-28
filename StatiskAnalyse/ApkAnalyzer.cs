@@ -12,11 +12,8 @@ namespace StatiskAnalyse
     internal class ApkAnalysis
     {
         internal static readonly string[] Trackers = File.ReadLines("../../trackers.txt").ToArray();
-
         public static string BakSmaliPath = Path.GetFullPath("../../TOOLS/baksmali-2.2.1.jar");
-
         public static string AaptPah = "../../TOOLS/aapt.exe";
-
         public static string SavePath = Path.GetFullPath("/STAN");
 
         private static readonly Regex StringConstantRegex = new Regex("\".+\"", RegexOptions.Compiled);
@@ -25,8 +22,6 @@ namespace StatiskAnalyse
         public string ManifestXmlTree { get; set; }
         public ClassFileDirectory Root { get; private set; }
         public string Name { get; private set; }
-
-        public List<Use> StringConstants { get; set; }
         
         private void Clear()
         {
@@ -37,32 +32,32 @@ namespace StatiskAnalyse
         public static void ProcessApk(string path, SearchHandlerContainer container)
         {
             var aa = InternalSmaliToolChain(path);
-            aa.StringConstants = aa.Root.FindUses(StringConstantRegex).FirstOrDefault().Uses;
+            var stringConstants = aa.Root.FindUses(StringConstantRegex).FirstOrDefault().Uses;
             var tu = aa.Root.FindUses(container.RegexSearchHandlers);
             foreach (var tuple in tu)
                 SaveFile(aa.Name, tuple);
             if (container.ManifestSearchHandlers.Count != 0)
             {
-                var ntu = container.ManifestSearchHandlers.Select(
+                var ntu = container.ManifestSearchHandlers.AsParallel().Select(
                     t => new Tuple<string, object>(t.OutputName, t.Process(aa.ManifestXmlTree)));
                 foreach (var tuple in ntu)
                     SaveFile(aa.Name, tuple);
             }
             if (container.StructureSearchHandlers.Count != 0)
             {
-                var ntu = container.StructureSearchHandlers.Select(
+                var ntu = container.StructureSearchHandlers.AsParallel().Select(
                     t => new Tuple<string, object>(t.OutputName, t.Process(aa.Root)));
                 foreach (var tuple in ntu)
                     SaveFile(aa.Name, tuple);
             }
             if (container.ConstantStringSearchHandlers.Count != 0)
             {
-                var ntu = container.ConstantStringSearchHandlers.Select(
-                    t => new Tuple<string, object>(t.OutputName, t.Process(aa.StringConstants)));
+                var ntu = container.ConstantStringSearchHandlers.AsParallel().Select(
+                    t => new Tuple<string, object>(t.OutputName, t.Process(stringConstants)));
                 foreach (var tuple in ntu)
                     SaveFile(aa.Name, tuple);
             }
-            SaveFile(aa.Name, new Tuple<string, object>("StringConstants", aa.StringConstants));
+            SaveFile(aa.Name, new Tuple<string, object>("StringConstants", stringConstants));
             aa.Clear();
         }
 
@@ -94,12 +89,7 @@ namespace StatiskAnalyse
             aa.Root = ClassFileDirectory.LoadFromDirectory(o, "smali");
             return aa;
         }
-
-        private static bool IsObfuscated(ClassFileDirectory cfd)
-        {
-            return cfd.Files.Any(f => f.Name == "a") || cfd.Directories.Any(IsObfuscated);
-        }
-
+        
         private static void BakSmali(string inputDex, string output)
         {
             var cmd = $"-jar \"{BakSmaliPath}\" disassemble \"{inputDex}\" -o \"{output}\"";

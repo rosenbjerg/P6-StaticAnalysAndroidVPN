@@ -5,34 +5,17 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using StatiskAnalyse.ResultWrappers;
 using StatiskAnalyse.SearchHandling;
-using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse
 {
-    public class SearchHandlerContainer
-    {
-        public List<RegexSearchHandler> RegexSearchHandlers { get; } = new List<RegexSearchHandler>();
-
-        public List<ConstantStringSearchHandler> ConstantStringSearchHandlers { get; } =
-            new List<ConstantStringSearchHandler>();
-
-        public List<ManifestSearchHandler> ManifestSearchHandlers { get; } = new List<ManifestSearchHandler>();
-        public List<StructureSearchHandler> StructureSearchHandlers { get; } = new List<StructureSearchHandler>();
-    }
-
     internal class Program
     {
         private static void Main(string[] args)
         {
-            // test key
-            GoogleSearch.ApiKey = "AIzaSyDrqFQq2jnMtCtiNPiI5D6KDCWJT_Fyrt4";
+            GoogleSearch.ApiKey = "";
             ApkAnalysis.SavePath = "R:\\test2";
             var ApkFolder = "C:\\Users\\Malte\\Desktop\\apks";
-            //string ApkFolder = "/folder/with/apk/files";
-
-            if (args.Length > 0 && Directory.Exists(args[0]))
-                ApkFolder = args[0];
-
+            
             var linuxCmds = new[]
             {
                 "chown",
@@ -49,8 +32,7 @@ namespace StatiskAnalyse
                 "grep",
                 "ls"
             };
-
-
+            
             var javaMethods = new[]
             {
                 "Ljava/security/SecureClassLoader;->defineClass",
@@ -64,13 +46,14 @@ namespace StatiskAnalyse
                 RegexSearchHandlers =
                 {
                     new IPv4RegexSearchHandler(),
+                    //new IPv6RegexSearchHandler(),
                     new UrlRegexSearchHandler(),
                     new StringRegexSearchHandler("JavaMethods", javaMethods)
                 },
                 ConstantStringSearchHandlers =
                 {
                     new HighEntropyWordSearchHandler(4.75),
-                    new HighEntropyWordWGoogleSearchHandler(0, 0, 4.75),
+                    //new HighEntropyWordWGoogleSearchHandler(0, 0, 4.75),
                     new LinuxCommandSearchHandler(linuxCmds)
                 },
                 ManifestSearchHandlers =
@@ -83,16 +66,16 @@ namespace StatiskAnalyse
                     new LibrarySearchHandler()
                 }
             };
+            var apks = Directory.EnumerateFiles(ApkFolder, "*.apk")
+                .Where(x => x.Contains("Hotspot Shield Free") || x.Contains("Amaze") || x.Contains("Tunnel") ||
+                            x.Contains("Ultrasurf"));
 
-            PerformAnalysis(ApkFolder, handlers);
+            PerformAnalysis(apks, handlers);
             Console.ReadKey();
         }
 
-        private static void PerformAnalysis(string apkFolder, SearchHandlerContainer handlers)
+        private static void PerformAnalysis(IEnumerable<string> apks, SearchHandlerContainer handlers)
         {
-            var apks = Directory.EnumerateFiles(apkFolder, "*.apk")
-                .Where(x => x.Contains("Hotspot Shield Free") || x.Contains("Amaze") || x.Contains("Tunnel") ||
-                            x.Contains("Ultrasurf"));
             int done = 0, total = apks.Count();
             var tot = 100.0 / total;
             var starttime = DateTime.UtcNow;

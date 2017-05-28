@@ -6,7 +6,7 @@ namespace StatiskAnalyse.ResultWrappers
     {
         public string Pattern { get; set; }
         public int UseCount => Uses.Count;
-        public List<Use> Uses { get; } = new List<Use>();
+        public List<Use> Uses { get; set; } = new List<Use>();
 
         public override string ToString()
         {

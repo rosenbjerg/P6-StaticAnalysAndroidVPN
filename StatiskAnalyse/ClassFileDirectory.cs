@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using StatiskAnalyse.ResultWrappers;
@@ -23,86 +24,29 @@ namespace StatiskAnalyse
                 DirPath = rootDir
             };
             var dirs = Directory.EnumerateDirectories(rootDir);
-            foreach (var d in dirs)
-                retVal.Directories.Add(LoadFromDirectory(d, ext));
+            retVal.Directories.AddRange(dirs.Select(d => LoadFromDirectory(d, ext)));
+
             var files = Directory.EnumerateFiles(rootDir, "*." + ext);
-            foreach (var f in files)
-                retVal.Files.Add(ClassFile.FromPath(f));
-
-
+            retVal.Files.AddRange(files.Select(ClassFile.FromPath));
+            
             return retVal;
         }
-
-        public List<SearchResult> FindUses(params string[] patterns)
-        {
-            var l = new object();
-            var retVal = new List<SearchResult>();
-            Parallel.ForEach(patterns, pattern =>
-            {
-                var e = new SearchResult
-                {
-                    Pattern = pattern
-                };
-                e.Uses.AddRange(FindUsesInDir(this, pattern));
-                lock (l)
-                {
-                    retVal.Add(e);
-                }
-            });
-            return retVal;
-        }
-
+        
         public List<SearchResult> FindUses(params Regex[] patterns)
         {
-            var l = new object();
-            var retVal = new List<SearchResult>();
-            Parallel.ForEach(patterns, pattern =>
+            return patterns.AsParallel().Select(p => new SearchResult
             {
-                var e = new SearchResult
-                {
-                    Pattern = pattern.ToString()
-                };
-                e.Uses.AddRange(FindUsesInDir(this, pattern));
-                lock (l)
-                {
-                    retVal.Add(e);
-                }
-            });
-            return retVal;
+                Pattern = p.ToString(),
+                Uses = FindUsesInDir(this, p).ToList()
+            }).ToList();
         }
-
-        private static IEnumerable<Use> FindUsesInDir(ClassFileDirectory dir, string pattern)
-        {
-            var retVal = new List<Use>();
-            foreach (var classFileDirectory in dir.Directories)
-                retVal.AddRange(FindUsesInDir(classFileDirectory, pattern));
-            foreach (var classFile in dir.Files)
-                retVal.AddRange(FindOccurencesInString(classFile, pattern));
-            return retVal;
-        }
-
-        private static IEnumerable<Use> FindOccurencesInString(ClassFile cf, string searchFor)
-        {
-            for (var li = 0; li < cf.Source.Length; li++)
-            {
-                var l = cf.Source[li];
-                var i = l.IndexOf(searchFor);
-                while (i != -1)
-                {
-                    yield return new Use(cf, li + 1, i + 1, l);
-                    i = l.IndexOf(searchFor, i);
-                }
-            }
-        }
-
+        
 
         private static IEnumerable<Use> FindUsesInDir(ClassFileDirectory dir, Regex pattern)
         {
             var retVal = new List<Use>();
-            foreach (var classFileDirectory in dir.Directories)
-                retVal.AddRange(FindUsesInDir(classFileDirectory, pattern));
-            foreach (var classFile in dir.Files)
-                retVal.AddRange(FindOccurencesInString(classFile, pattern));
+            retVal.AddRange(dir.Directories.SelectMany(d => FindUsesInDir(d, pattern)));
+            retVal.AddRange(dir.Files.SelectMany(f => FindOccurencesInString(f, pattern)));
             return retVal;
         }
 
@@ -124,19 +68,11 @@ namespace StatiskAnalyse
             return Name;
         }
 
-        public List<Tuple<string, List<object>>> FindUses(List<RegexSearchHandler> lookFor)
+        public List<Tuple<string, List<object>>> FindUses(List<IRegexSearchHandler> lookFor)
         {
-            var l = new object();
-            var retVal = new List<Tuple<string, List<object>>>();
-            Parallel.ForEach(lookFor, p =>
-            {
-                var list = p.Process(FindUsesInDir(this, p.Regex));
-                lock (l)
-                {
-                    retVal.Add(new Tuple<string, List<object>>(p.OutputName, list));
-                }
-            });
-            return retVal;
+            return lookFor.AsParallel()
+                .Select(p => new Tuple<string, List<object>>(p.OutputName, p.Process(FindUsesInDir(this, p.Regex))))
+                .ToList();
         }
     }
 }
