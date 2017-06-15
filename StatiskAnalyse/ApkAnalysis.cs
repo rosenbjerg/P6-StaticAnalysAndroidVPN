@@ -9,7 +9,7 @@ using StatiskAnalyse.ResultWrappers;
 
 namespace StatiskAnalyse
 {
-    internal class ApkAnalysis
+    public class ApkAnalysis
     {
         internal static readonly string[] Trackers = File.ReadLines("../../trackers.txt").ToArray();
         public static string BakSmaliPath = Path.GetFullPath("../../TOOLS/baksmali-2.2.1.jar");
@@ -32,8 +32,8 @@ namespace StatiskAnalyse
         public static void ProcessApk(string path, SearchHandlerContainer container)
         {
             var aa = InternalSmaliToolChain(path);
-            var stringConstants = aa.Root.FindUses(StringConstantRegex).FirstOrDefault().Uses;
-            var tu = aa.Root.FindUses(container.RegexSearchHandlers);
+            var stringConstants = aa.Root.FindUses(StringConstantRegex).Where(s => s.FoundIn.Source[s.Line-1].Contains("const-string "));
+            var tu = aa.Root.FindUses(aa, container.RegexSearchHandlers);
             foreach (var tuple in tu)
                 SaveFile(aa.Name, tuple);
             if (container.ManifestSearchHandlers.Count != 0)
@@ -46,14 +46,14 @@ namespace StatiskAnalyse
             if (container.StructureSearchHandlers.Count != 0)
             {
                 var ntu = container.StructureSearchHandlers.AsParallel().Select(
-                    t => new Tuple<string, object>(t.OutputName, t.Process(aa.Root)));
+                    t => new Tuple<string, object>(t.OutputName, t.Process(aa)));
                 foreach (var tuple in ntu)
                     SaveFile(aa.Name, tuple);
             }
             if (container.ConstantStringSearchHandlers.Count != 0)
             {
                 var ntu = container.ConstantStringSearchHandlers.AsParallel().Select(
-                    t => new Tuple<string, object>(t.OutputName, t.Process(stringConstants)));
+                    t => new Tuple<string, object>(t.OutputName, t.Process(aa, stringConstants)));
                 foreach (var tuple in ntu)
                     SaveFile(aa.Name, tuple);
             }

@@ -17,7 +17,7 @@ namespace StatiskAnalyse.SearchHandling
 
         public string OutputName { get; } = "HighEntropyWords";
 
-        public List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
             var stringSearchResults = results.Where(u => u.SampleLine.Length > 16 &&
                                                          (u.SampleLine.IndexOf(" ", StringComparison.Ordinal) ==

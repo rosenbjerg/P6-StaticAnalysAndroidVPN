@@ -16,12 +16,26 @@ namespace StatiskAnalyse.SearchHandling
 
         public string OutputName { get; } = "LinuxCommands";
 
-        public List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
-            var cmds = results.Where(x => _commands.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " ")))
-                .Cast<object>().ToList();
+            const string jsb = "Ljava/lang/StringBuilder";
+            var cmds = results.Where(x => _commands.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " "))).ToList();
+            foreach (var result in cmds)
+            {
+                // If appended to a stringbuilder
+                if (result.FoundIn.Source[result.Line + 2].Contains(jsb + ";->append"))
+                {
+                    //AnalysisTools.TraceStringBuilder(apk, result.Line);
+                }
+                // If used as a string
+                else
+                {
+                    
+                }
+
+            }
             // TODO More verification of the string actually being used with Runtime->exec
-            return cmds;
+            return null;
         }
     }
 }

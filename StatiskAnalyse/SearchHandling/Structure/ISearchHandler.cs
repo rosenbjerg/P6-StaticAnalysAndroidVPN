@@ -7,6 +7,6 @@ namespace StatiskAnalyse.SearchHandling.Structure
     {
         string OutputName { get; }
 
-        List<object> Process(IEnumerable<Use> results);
+        List<object> Process(ApkAnalysis apk, IEnumerable<Use> results);
     }
 }

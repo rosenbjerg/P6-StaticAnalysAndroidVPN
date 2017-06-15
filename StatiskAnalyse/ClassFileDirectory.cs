@@ -46,13 +46,9 @@ namespace StatiskAnalyse
             return retVal;
         }
         
-        public List<SearchResult> FindUses(params Regex[] patterns)
+        public IEnumerable<Use> FindUses(Regex pattern)
         {
-            return patterns.AsParallel().Select(p => new SearchResult
-            {
-                Pattern = p.ToString(),
-                Uses = FindUsesInDir(this, p).ToList()
-            }).ToList();
+            return FindUsesInDir(this, pattern);
         }
         
 
@@ -82,10 +78,10 @@ namespace StatiskAnalyse
             return Name;
         }
 
-        public List<Tuple<string, List<object>>> FindUses(List<IRegexSearchHandler> lookFor)
+        public List<Tuple<string, List<object>>> FindUses(ApkAnalysis apk, List<IRegexSearchHandler> lookFor)
         {
             return lookFor.AsParallel()
-                .Select(p => new Tuple<string, List<object>>(p.OutputName, p.Process(FindUsesInDir(this, p.Regex))))
+                .Select(p => new Tuple<string, List<object>>(p.OutputName, p.Process(apk, FindUsesInDir(this, p.Regex))))
                 .ToList();
         }
     }

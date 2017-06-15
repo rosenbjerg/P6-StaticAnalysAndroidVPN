@@ -18,14 +18,14 @@ namespace StatiskAnalyse.SearchHandling
 
         public string OutputName { get; } = "Libraries";
 
-        public List<object> Process(ClassFileDirectory rootDir)
+        public List<object> Process(ApkAnalysis apk)
         {
             var retVal = new List<object>();
             foreach (var libs in CriticalLibs)
             {
                 var found = false;
                 var tt = libs.Split('/');
-                var root = rootDir;
+                var root = apk.Root;
                 for (var i = 0; i < tt.Length; i++)
                 {
                     var s = tt[i];

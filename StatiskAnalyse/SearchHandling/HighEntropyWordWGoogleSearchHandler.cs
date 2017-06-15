@@ -16,9 +16,9 @@ namespace StatiskAnalyse.SearchHandling
         }
         public string OutputName { get; } = "HighEntropyWordsWGoogle";
 
-        public List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
-            var hew = base.Process(results).Cast<EntropyResult>();
+            var hew = base.Process(apk, results).Cast<EntropyResult>();
 
             return _max == -1
                 ? hew.Select(s => new GoogleSearch(s.Word)).Where(g => g.Results != 1 && g.Results < _limit + 1).Cast<object>().ToList()

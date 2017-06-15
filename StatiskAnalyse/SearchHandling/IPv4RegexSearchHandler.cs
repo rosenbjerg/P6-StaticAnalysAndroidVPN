@@ -23,7 +23,7 @@ namespace StatiskAnalyse.SearchHandling
         
         public string OutputName { get; } = "IPv4";
 
-        public List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
             var ips = results.Where(u => IPAddress.TryParse(u.SampleLine, out IPAddress ip));
             return ips.Select(i => (object) new IpSearchResult(i.SampleLine, GetCountry(i.SampleLine), i.File, i.Line,

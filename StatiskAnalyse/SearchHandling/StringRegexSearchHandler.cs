@@ -16,7 +16,7 @@ namespace StatiskAnalyse.SearchHandling
     
         public string OutputName { get; }
 
-        public List<object> Process(IEnumerable<Use> results)
+        public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
             return results.Cast<object>().ToList();
         }
