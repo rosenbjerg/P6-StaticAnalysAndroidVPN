@@ -16,7 +16,7 @@ namespace StatiskAnalyse
         public static string AaptPah = "../../TOOLS/aapt.exe";
         public static string SavePath = Path.GetFullPath("/STAN");
 
-        private static readonly Regex StringConstantRegex = new Regex("\".+\"", RegexOptions.Compiled);
+        private static readonly Regex StringConstantRegex = new Regex("const-string v[0-9]{1,2}, \"(.+)\"", RegexOptions.Compiled);
         
 
         public string ManifestXmlTree { get; set; }
@@ -32,7 +32,7 @@ namespace StatiskAnalyse
         public static void ProcessApk(string path, SearchHandlerContainer container)
         {
             var aa = InternalSmaliToolChain(path);
-            var stringConstants = aa.Root.FindUses(StringConstantRegex).Where(s => s.FoundIn.Source[s.Line-1].Contains("const-string "));
+            var stringConstants = aa.Root.FindUses(StringConstantRegex, 1);
             var tu = aa.Root.FindUses(aa, container.RegexSearchHandlers);
             foreach (var tuple in tu)
                 SaveFile(aa.Name, tuple);

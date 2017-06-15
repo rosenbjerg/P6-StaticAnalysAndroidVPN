@@ -21,7 +21,7 @@ namespace StatiskAnalyse
             var ret = Files.FirstOrDefault(f => f.FilePath.Contains(filepath));
             if (ret != null)
                 return ret;
-            foreach (var dir in Directories)
+            foreach (var dir in Directories.Where(d => filepath.Contains(d.DirPath)))
             {
                 ret = dir.FindFile(filepath);
                 if (ret != null)
@@ -46,21 +46,21 @@ namespace StatiskAnalyse
             return retVal;
         }
         
-        public IEnumerable<Use> FindUses(Regex pattern)
+        public IEnumerable<Use> FindUses(Regex pattern, short regexGroup = 0)
         {
-            return FindUsesInDir(this, pattern);
+            return FindUsesInDir(this, pattern, regexGroup);
         }
         
 
-        private static IEnumerable<Use> FindUsesInDir(ClassFileDirectory dir, Regex pattern)
+        private static IEnumerable<Use> FindUsesInDir(ClassFileDirectory dir, Regex pattern, short regexGroup)
         {
             var retVal = new List<Use>();
-            retVal.AddRange(dir.Directories.SelectMany(d => FindUsesInDir(d, pattern)));
-            retVal.AddRange(dir.Files.SelectMany(f => FindOccurencesInString(f, pattern)));
+            retVal.AddRange(dir.Directories.SelectMany(d => FindUsesInDir(d, pattern, regexGroup)));
+            retVal.AddRange(dir.Files.SelectMany(f => FindOccurencesInString(f, pattern, regexGroup)));
             return retVal;
         }
 
-        private static IEnumerable<Use> FindOccurencesInString(ClassFile cf, Regex searchFor)
+        private static IEnumerable<Use> FindOccurencesInString(ClassFile cf, Regex searchFor, short regexGroup)
         {
             for (var i = 0; i < cf.Source.Length; i++)
             {
@@ -68,7 +68,7 @@ namespace StatiskAnalyse
                 var m = searchFor.Matches(l);
                 if (m.Count == 0) continue;
                 foreach (Match match in m)
-                    yield return new Use(cf, i + 1, match.Index + 1, match.Value);
+                    yield return new Use(cf, i + 1, match.Index + 1, match.Groups[regexGroup].Value);
             }
         }
 
@@ -81,7 +81,7 @@ namespace StatiskAnalyse
         public List<Tuple<string, List<object>>> FindUses(ApkAnalysis apk, List<IRegexSearchHandler> lookFor)
         {
             return lookFor.AsParallel()
-                .Select(p => new Tuple<string, List<object>>(p.OutputName, p.Process(apk, FindUsesInDir(this, p.Regex))))
+                .Select(p => new Tuple<string, List<object>>(p.OutputName, p.Process(apk, FindUsesInDir(this, p.Regex, 0))))
                 .ToList();
         }
     }
