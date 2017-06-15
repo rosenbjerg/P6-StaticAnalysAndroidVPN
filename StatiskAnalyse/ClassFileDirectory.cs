@@ -16,6 +16,20 @@ namespace StatiskAnalyse
         public List<ClassFileDirectory> Directories { get; } = new List<ClassFileDirectory>();
         public List<ClassFile> Files { get; } = new List<ClassFile>();
 
+        public ClassFile FindFile(string filepath)
+        {
+            var ret = Files.FirstOrDefault(f => f.FilePath.Contains(filepath));
+            if (ret != null)
+                return ret;
+            foreach (var dir in Directories)
+            {
+                ret = dir.FindFile(filepath);
+                if (ret != null)
+                    return ret;
+            }
+            return null;
+        }
+
         public static ClassFileDirectory LoadFromDirectory(string rootDir, string ext)
         {
             var retVal = new ClassFileDirectory

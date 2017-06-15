@@ -67,8 +67,7 @@ namespace StatiskAnalyse
                 }
             };
             var apks = Directory.EnumerateFiles(ApkFolder, "*.apk")
-                .Where(x => x.Contains("Hotspot Shield Free") || x.Contains("Amaze") || x.Contains("Tunnel") ||
-                            x.Contains("Ultrasurf"));
+                .Where(x => x.Contains("Hotspot Shield Free") || x.Contains("Amaze"));
 
             PerformAnalysis(apks, handlers);
             Console.ReadKey();
