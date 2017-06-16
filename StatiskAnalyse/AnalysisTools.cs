@@ -114,14 +114,51 @@ namespace StatiskAnalyse
 
     internal static class Util
     {
-        public static Regex ConstantStringRegex = new Regex($" *const-string (v[0-9]+), \"(.+)\"", RegexOptions.Compiled);
-        public static Regex NewInstanceRegex = new Regex(" *new-instance (v[0-9]+), ([\\w/]+);", RegexOptions.Compiled);
-        public static Regex MoveResultObjectRegex = new Regex(" *move-result-object (v[0-9]+)", RegexOptions.Compiled);
-        public static Regex InvokeVirtualRegex = new Regex(" *invoke-virtual {(v\\d+), ([vp]\\d+)}, ([\\w\\/]+);->(\\w+)\\(([\\w\\/;]+)\\)([\\w\\/]+);", RegexOptions.Compiled);
-        public static Regex InvokeDirectRegex = new Regex(" *invoke-direct {(v\\d+)?}, ([\\w\\/]+);->(<?[\\w]+>?)\\(([\\w\\/;]+)\\)([\\w\\/]+)", RegexOptions.Compiled);
-        public static Regex InvokeStaticRegex = new Regex(" *invoke-static {(v\\d+)?}, ([\\w\\/]+);->\\w+\\(([\\w\\/;]*)\\)([\\w\\/]+);", RegexOptions.Compiled);
-        public static Regex ClassRegex = new Regex("\\.class ([a-z]+)? ?([\\w\\/]+);", RegexOptions.Compiled);
-        public static Regex MethodRegex = new Regex("\\.method ([a-z]+) (static)? ?(\\w+)\\(([\\w\\/;]+)\\)([\\w\\/]+)", RegexOptions.Compiled);
+        private const string _reg = "(v\\d+)";
+        private const string _regOrParam = "([vp]\\d+)";
+        private const string _type = "([^ :;]+)";
+        private const string _fieldOrMethod = "([^>:\\(]+)";
+        private const string _inputTypes = "([^ :]+)";
+
+
+        public static Regex ConstantStringRegex =
+            new Regex($" *const-string " + _reg + ", \"(.+)\"", 
+                RegexOptions.Compiled);
+
+        public static Regex NewInstanceRegex =
+            new Regex(" *new-instance " + _reg + ", " + _type + ";", 
+                RegexOptions.Compiled);
+
+        public static Regex MoveResultObjectRegex = 
+            new Regex(" *move-result-object " + _reg,
+                RegexOptions.Compiled);
+
+        public static Regex InvokeVirtualRegex =
+            new Regex(
+                " *invoke-virtual {" + _reg + ", " + _regOrParam + "}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";", 
+                RegexOptions.Compiled);
+
+        public static Regex InvokeDirectRegex =
+            new Regex(
+                " *invoke-direct {" + _reg + "?}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type, 
+                RegexOptions.Compiled);
+
+        public static Regex InvokeStaticRegex =
+            new Regex(
+                " *invoke-static {" + _reg + "?}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";", 
+                RegexOptions.Compiled);
+
+        public static Regex ClassRegex = 
+            new Regex("\\.class ([a-z]+)? ?" + _type + ";", 
+                RegexOptions.Compiled);
+
+        public static Regex MethodRegex =
+            new Regex("\\.method ([a-z]+) ?(static)? " + _fieldOrMethod + "\\(([\\w\\/;]+)\\)([\\w\\/]+)",
+                RegexOptions.Compiled);
+
+        public static Regex IGetRegex =
+            new Regex(" *iget-object " + _reg + ", " + _regOrParam + ", " + _type + ";->" + _fieldOrMethod + ":" + _type + ";", 
+                RegexOptions.Compiled);
     }
     
 }
