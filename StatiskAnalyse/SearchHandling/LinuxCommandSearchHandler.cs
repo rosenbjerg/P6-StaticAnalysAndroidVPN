@@ -20,14 +20,23 @@ namespace StatiskAnalyse.SearchHandling
 
         public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
-            const string jsb = "Ljava/lang/StringBuilder";
-            var cmds = results.Where(x => _commands.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " "))).ToList();
+            const string jsinv = ", \\1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder";
+            var cmds = results.Where(x => _commands.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " ") || x.SampleLine.Contains(" " + y + " "))).ToList();
             foreach (var result in cmds)
             {
+                var line = result.FoundIn.Source[result.Line - 1];
+                var s = line.IndexOf('v');
+                var c = line.IndexOf(',') - s;
+                var reg = line.Substring(s, c);
                 // If appended to a stringbuilder
-                if (result.FoundIn.Source[result.Line + 2].Contains(jsb + ";->append"))
+                if (result.FoundIn.Source[result.Line + 1].Contains(jsinv.Replace("\\1", reg)))
                 {
-                    //AnalysisTools.TraceStringBuilder(apk, result.Line);
+                    line = result.FoundIn.Source[result.Line + 1];
+                    s = line.IndexOf('{') + 1;
+                    c = line.IndexOf(',') - s;
+                    var sbReg = line.Substring(s, c);
+                    Console.WriteLine(line);
+                    AnalysisTools.TraceStringBuilder(apk, result.FoundIn, result.Line + 1, sbReg);
                 }
                 // If used as a string
                 else

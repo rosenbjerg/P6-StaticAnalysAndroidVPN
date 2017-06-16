@@ -14,9 +14,9 @@ namespace StatiskAnalyse.SearchHandling
             _max = maxSearches;
             _limit = toManyResults;
         }
-        public string OutputName { get; } = "HighEntropyWordsWGoogle";
+        public new string OutputName { get; } = "HighEntropyWordsWGoogle";
 
-        public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
+        public new List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
             var hew = base.Process(apk, results).Cast<EntropyResult>();
 
