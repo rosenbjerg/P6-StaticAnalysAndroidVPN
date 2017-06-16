@@ -72,6 +72,7 @@
     <Compile Include="AnalysisTools.cs" />
     <Compile Include="AndroidManifestExtracter.cs" />
     <Compile Include="ApkAnalysis.cs" />
+    <Compile Include="RegisterMachineSimulator.cs" />
     <Compile Include="SearchHandlerContainer.cs" />
     <Compile Include="SearchHandling\IPv6RegexSearchHandler.cs" />
     <Compile Include="SearchHandling\LibrarySearchHandler.cs" />
