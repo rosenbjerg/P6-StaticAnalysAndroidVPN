@@ -1,4 +1,6 @@
 ﻿using System;
+<<<<<<< HEAD
+=======
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -6,6 +8,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using StatiskAnalyse.ResultWrappers;
 using System.Collections.Generic;
+>>>>>>> origin/master
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -58,6 +61,19 @@ namespace StatiskAnalyse
             return -1;
         }
 
+        public static string GetMethodName(ClassFile file, int line)
+        {
+            var start = GetMethodStart(file, line) -1;
+            var m = Util.MethodRegex.Match(file.Source[start]);
+            return m.Groups[3].Value;
+        }
+
+        public static string GetClassName(ClassFile file)
+        {
+            var m = Util.ClassRegex.Match(file.Source[0]);
+            return m.Groups[2].Value;
+        }
+
         internal static string TraceStringBuilder(ApkAnalysis apk, ClassFile file, int line, string register)
         {
             var startLine = GetMethodStart(file, line);
@@ -107,6 +123,10 @@ namespace StatiskAnalyse
         public static Regex InvokeVirtualRegex = new Regex(" *invoke-virtual {(v\\d+), ([vp]\\d+)}, ([\\w\\/]+);->(\\w+)\\(([\\w\\/;]+)\\)([\\w\\/]+);", RegexOptions.Compiled);
         public static Regex InvokeDirectRegex = new Regex(" *invoke-direct {(v\\d+)?}, ([\\w\\/]+);->(<?[\\w]+>?)\\(([\\w\\/;]+)\\)([\\w\\/]+)", RegexOptions.Compiled);
         public static Regex InvokeStaticRegex = new Regex(" *invoke-static {(v\\d+)?}, ([\\w\\/]+);->\\w+\\(([\\w\\/;]*)\\)([\\w\\/]+);", RegexOptions.Compiled);
+<<<<<<< HEAD
+        public static Regex MethodRegex = new Regex("\\.method ([a-z]+) ([a-z]+)? ?(\\w+)\\(([\\w\\/;]+)\\)([\\w\\/]+)", RegexOptions.Compiled);
+        public static Regex ClassRegex = new Regex("\\.class ([a-z]+)? ?([\\w\\/]+);", RegexOptions.Compiled);
+=======
         public static Regex MethodRegex = new Regex("\\.method ([a-z]+) (static)? ?(\\w+)\\(([\\w\\/;]+)\\)([\\w\\/]+)", RegexOptions.Compiled);
     }
 
@@ -171,5 +191,6 @@ namespace StatiskAnalyse
             _dict[reg] = val;
             _dictType[reg] = type;
         }
+>>>>>>> origin/master
     }
 }
