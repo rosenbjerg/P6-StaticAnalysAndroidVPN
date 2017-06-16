@@ -19,11 +19,12 @@ namespace StatiskAnalyse
         /// </summary>
         private static int GetMethodStart(ClassFile file, int line)
         {
-            var prev = "";
             var start = line;
+            var prev = file.Source[start];
             while (!prev.StartsWith(".method"))
             {
                 start = start - 1;
+                if (start < 0) return -1;
                 prev = file.Source[start];
             }
             return start + 1;
@@ -61,7 +62,12 @@ namespace StatiskAnalyse
         public static string GetMethodName(ClassFile file, int line)
         {
             var start = GetMethodStart(file, line) -1;
-            var m = Util.MethodRegex.Match(file.Source[start]);
+            if (start < 0)
+                return "";
+            var l = file.Source[start];
+            var m = Util.MethodRegex.Match(l);
+            if (!m.Success)
+                return "";
             return m.Groups[3].Value;
         }
 
@@ -118,8 +124,8 @@ namespace StatiskAnalyse
         private const string _reg = "(v\\d+)";
         private const string _regOrParam = "([vp]\\d+)";
         private const string _type = "([^ :;]+)";
-        private const string _fieldOrMethod = "([^>:\\(]+)";
-        private const string _inputTypes = "([^ :]+)";
+        private const string _fieldOrMethod = "([^:\\(]+)";
+        private const string _inputTypes = "([^ :]*)";
 
 
         public static Regex ConstantStringRegex =
@@ -127,7 +133,7 @@ namespace StatiskAnalyse
                 RegexOptions.Compiled);
 
         public static Regex NewInstanceRegex =
-            new Regex(" *new-instance " + _reg + ", " + _type + ";", 
+            new Regex(" *new-instance " + _reg + ", " + _type + ";?", 
                 RegexOptions.Compiled);
 
         public static Regex MoveResultObjectRegex = 
@@ -136,7 +142,7 @@ namespace StatiskAnalyse
 
         public static Regex InvokeVirtualRegex =
             new Regex(
-                " *invoke-virtual {" + _reg + ", " + _regOrParam + "}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";", 
+                " *invoke-virtual {" + _reg + ", " + _regOrParam + "}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";?", 
                 RegexOptions.Compiled);
 
         public static Regex InvokeDirectRegex =
@@ -146,7 +152,7 @@ namespace StatiskAnalyse
 
         public static Regex InvokeStaticRegex =
             new Regex(
-                " *invoke-static {" + _reg + "?}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";", 
+                " *invoke-static {" + _reg + "?}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";?", 
                 RegexOptions.Compiled);
 
         public static Regex ClassRegex = 
@@ -154,11 +160,11 @@ namespace StatiskAnalyse
                 RegexOptions.Compiled);
 
         public static Regex MethodRegex =
-            new Regex("\\.method ([a-z]+) ?(static)? " + _fieldOrMethod + "\\(([\\w\\/;]+)\\)([\\w\\/]+)",
+            new Regex("\\.method ?([a-z]+)? ?(static|constructor)? " + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";?",
                 RegexOptions.Compiled);
 
         public static Regex IGetRegex =
-            new Regex(" *iget-object " + _reg + ", " + _regOrParam + ", " + _type + ";->" + _fieldOrMethod + ":" + _type + ";", 
+            new Regex(" *iget-object " + _reg + ", " + _regOrParam + ", " + _type + ";->" + _fieldOrMethod + ":" + _type + ";?", 
                 RegexOptions.Compiled);
     }
     
