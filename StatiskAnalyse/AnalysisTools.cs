@@ -1,16 +1,14 @@
 ﻿using System;
-<<<<<<< HEAD
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using StatiskAnalyse.ResultWrappers;
-=======
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
->>>>>>> b770f2c898576799ecd69aa09bedbdef3c47de8c
+
 
 namespace StatiskAnalyse
 {
@@ -46,9 +44,9 @@ namespace StatiskAnalyse
             return end - 1;
         }
 
-<<<<<<< HEAD
-        public static void TraceStringBuilder(string a)
-=======
+
+
+
 
         private static int GetLineWith(string find, ClassFile file, int line, int start)
         {
@@ -83,6 +81,19 @@ namespace StatiskAnalyse
             }
 
             return sb.ToString();
+        }
+
+        public static void TraceMethodCall(ApkAnalysis a, Use result, int i)
+        {
+            string function = result.FoundIn.Source[i].Split().Last();
+            string pattern = "invoke-[a-z]+ (";
+            Console.WriteLine(a.Root.DirPath);
+            var uses = a.Root.FindUses(new Regex(pattern));
+
+
+
+
+            return;
         }
     }
 
@@ -153,24 +164,10 @@ namespace StatiskAnalyse
         }
 
         private void UpdateRegister(string reg, string val, string type)
->>>>>>> b770f2c898576799ecd69aa09bedbdef3c47de8c
+
         {
             _dict[reg] = val;
             _dictType[reg] = type;
-        }
-
-        public static void TraceMethodCall(ApkAnalysis a, Use result, int i)
-        {
-            string function = result.FoundIn.Source[i].Split( ).Last();
-            Tuple<int, string>[] calledlocations;
-            string pattern = @"invoke-\w*";
-            Console.WriteLine(a.Root.DirPath);
-            var uses = a.Root.FindUses(new Regex(pattern));
-
-
-
-
-            return;
         }
     }
 }
