@@ -98,12 +98,13 @@ namespace StatiskAnalyse
 
         public static void TraceMethodCall(ApkAnalysis a, Use result, int i)
         {
-            string function = result.FoundIn.Source[i].Split().Last();
-            var uses = a.Root.FindUses(new Regex(" *invoke-virtual {(v\\d+), ([vp]\\d+)}, (([\\w\\/]+);->(\\w+))\\(([\\w\\/;]+)\\)([\\w\\/]+);", RegexOptions.Compiled), 3);
-            uses = uses.Where(m => m.SampleLine.Contains(function) && m.SampleLine.Contains(result.FoundIn.Source[0].Replace(".class [a-z]+ " ,""))) ;
+            string function = GetMethodName(result.FoundIn, i);
+            var cl = GetClassName(result.FoundIn).Replace("/", "\\/");
+            var s = " *invoke.*" + cl + ";->" + function + ".*"; 
+            var uses = a.Root.FindUses(new Regex(s, RegexOptions.Compiled), 0);
             foreach (var use in uses)
             {
-                Console.WriteLine(use.SampleLine);
+              //  Console.WriteLine(use.SampleLine);
             }
 
 
