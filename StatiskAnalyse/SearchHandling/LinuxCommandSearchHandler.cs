@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using StatiskAnalyse.ResultWrappers;
 using StatiskAnalyse.SearchHandling.Structure;
 
@@ -43,6 +44,17 @@ namespace StatiskAnalyse.SearchHandling
                     
                 }
 
+            }
+            foreach (var result in cmds)
+            {
+                for (int i = result.Line; ;i--)
+                {
+                    if (result.FoundIn.Source[i].StartsWith(".method"))
+                    {
+                        AnalysisTools.TraceMethodCall(apk,result,i);
+                        break;
+                    }
+                }
             }
             // TODO More verification of the string actually being used with Runtime->exec
             return null;
