@@ -74,7 +74,7 @@ namespace StatiskAnalyse
         public static string GetClassName(ClassFile file)
         {
             var m = Util.ClassRegex.Match(file.Source[0]);
-            return m.Groups[2].Value;
+            return m.Groups[4].Value;
         }
 
         internal static string TraceStringBuilder(ApkAnalysis apk, ClassFile file, int line, string register)
@@ -102,16 +102,32 @@ namespace StatiskAnalyse
             return sb.ToString();
         }
 
-        public static void TraceMethodCall(ApkAnalysis a, Use result, int i)
+        public static void TraceMethodCall(ApkAnalysis a, List<Use> result)
         {
-            string function = GetMethodName(result.FoundIn, i);
-            var cl = GetClassName(result.FoundIn).Replace("/", "\\/");
-            var s = " *invoke.*" + cl + ";->" + function + ".*"; 
-            var uses = a.Root.FindUses(new Regex(s, RegexOptions.Compiled), 0);
-            foreach (var use in uses)
+            var results = result.AsParallel().Select(cmd =>
             {
-              //  Console.WriteLine(use.SampleLine);
-            }
+                string function = GetMethodName(cmd.FoundIn, cmd.Line);
+                var cl = GetClassName(cmd.FoundIn).Replace("/", "\\/");
+                var s = " *invoke.*" + cl + ";->" + function + ".*";
+                var uses = a.Root.FindUses(new Regex(s, RegexOptions.Compiled));
+                return new {Function = function, Class = cl, Uses = uses};
+            }).OrderByDescending(x => x.Uses.Count()).ToList();
+            //foreach (var cmd in result.AsParallel())
+            //{
+            //    string function = GetMethodName(cmd.FoundIn, cmd.Line);
+            //    var cl = GetClassName(cmd.FoundIn).Replace("/", "\\/");
+            //    var s = " *invoke.*" + cl + ";->" + function + ".*";
+            //    var uses = a.Root.FindUses(new Regex(s, RegexOptions.Compiled), 0);
+            //    if (!uses.Any() || uses.Count() > 500)
+            //    {
+            //        Console.WriteLine("");
+            //    }
+            //    foreach (var use in uses)
+            //    {
+            //        //  Console.WriteLine(use.SampleLine);
+            //    }
+            //}
+            
 
 
 
@@ -156,7 +172,7 @@ namespace StatiskAnalyse
                 RegexOptions.Compiled);
 
         public static Regex ClassRegex = 
-            new Regex("\\.class ([a-z]+)? ?" + _type + ";", 
+            new Regex("\\.class ?(public)? ?(final)? ([a-z]+)? ?" + _type + ";", 
                 RegexOptions.Compiled);
 
         public static Regex MethodRegex =

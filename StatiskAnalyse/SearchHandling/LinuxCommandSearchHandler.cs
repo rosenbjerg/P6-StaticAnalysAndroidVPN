@@ -45,17 +45,7 @@ namespace StatiskAnalyse.SearchHandling
                 }
 
             }
-            foreach (var result in cmds)
-            {
-                for (int i = result.Line; ;i--)
-                {
-                    if (result.FoundIn.Source[i].StartsWith(".method"))
-                    {
-                        AnalysisTools.TraceMethodCall(apk,result,i);
-                        break;
-                    }
-                }
-            }
+            AnalysisTools.TraceMethodCall(apk, cmds);
             // TODO More verification of the string actually being used with Runtime->exec
             return null;
         }
