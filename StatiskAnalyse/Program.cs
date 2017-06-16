@@ -13,8 +13,8 @@ namespace StatiskAnalyse
         private static void Main(string[] args)
         {
             GoogleSearch.ApiKey = "";
-            ApkAnalysis.SavePath = "C:\\test";
-            var ApkFolder = "C:\\Users\\Perni\\Desktop\\APK";
+            ApkAnalysis.SavePath = "R:\\test";
+            var ApkFolder = "C:\\Users\\Malte\\Desktop\\apks";
             
             var linuxCmds = new[]
             {

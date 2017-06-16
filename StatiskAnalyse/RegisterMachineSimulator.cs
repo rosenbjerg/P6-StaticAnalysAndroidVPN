@@ -50,11 +50,16 @@ namespace StatiskAnalyse
                 _latestResultType = t;
             }
 
-            //m = Util.InvokeVirtualRegex.Match(line);
-            //if (m.Success)
-            //{
-            //    var v = m.Groups[3].Value;
-            //}
+            m = Util.IGetRegex.Match(line);
+            if (m.Success)
+            {
+
+                var o = m.Groups[1].Value;
+                var i = m.Groups[2].Value;
+                var p = m.Groups[4].Value;
+                var t = m.Groups[5].Value;
+                UpdateRegister(o, "\\" + i + "->" + p, t);
+            }
 
         }
 
