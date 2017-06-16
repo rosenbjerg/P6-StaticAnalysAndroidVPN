@@ -86,14 +86,16 @@ namespace StatiskAnalyse
         public static void TraceMethodCall(ApkAnalysis a, Use result, int i)
         {
             string function = result.FoundIn.Source[i].Split().Last();
-            string pattern = "invoke-[a-z]+ (";
-            Console.WriteLine(a.Root.DirPath);
-            var uses = a.Root.FindUses(new Regex(pattern));
+            var uses = a.Root.FindUses(new Regex(" *invoke-virtual {(v\\d+), ([vp]\\d+)}, (([\\w\\/]+);->(\\w+))\\(([\\w\\/;]+)\\)([\\w\\/]+);", RegexOptions.Compiled), 3);
+            uses = uses.Where(m => m.SampleLine.Contains(function) && m.SampleLine.Contains(result.FoundIn.Source[0].Replace(".class [a-z]+ " ,""))) ;
+            foreach (var use in uses)
+            {
+                Console.WriteLine(use.SampleLine);
+            }
 
 
 
 
-            return;
         }
     }
 
@@ -102,7 +104,7 @@ namespace StatiskAnalyse
         public static Regex ConstantStringRegex = new Regex($" *const-string (v[0-9]+), \"(.+)\"", RegexOptions.Compiled);
         public static Regex NewInstanceRegex = new Regex(" *new-instance (v[0-9]+), ([\\w/]+);", RegexOptions.Compiled);
         public static Regex MoveResultObjectRegex = new Regex(" *move-result-object (v[0-9]+)", RegexOptions.Compiled);
-        public static Regex InvokeVirtualRegex = new Regex(" *invoke-virtual {(v\\d+), ([vp]\\d+)}, ([\\w\\/]+);->\\w+\\(([\\w\\/;]+)\\)([\\w\\/]+);", RegexOptions.Compiled);
+        public static Regex InvokeVirtualRegex = new Regex(" *invoke-virtual {(v\\d+), ([vp]\\d+)}, ([\\w\\/]+);->(\\w+)\\(([\\w\\/;]+)\\)([\\w\\/]+);", RegexOptions.Compiled);
         public static Regex InvokeDirectRegex = new Regex(" *invoke-direct {(v\\d+)?}, ([\\w\\/]+);->(<?[\\w]+>?)\\(([\\w\\/;]+)\\)([\\w\\/]+)", RegexOptions.Compiled);
         public static Regex InvokeStaticRegex = new Regex(" *invoke-static {(v\\d+)?}, ([\\w\\/]+);->\\w+\\(([\\w\\/;]*)\\)([\\w\\/]+);", RegexOptions.Compiled);
         public static Regex MethodRegex = new Regex("\\.method ([a-z]+) (static)? ?(\\w+)\\(([\\w\\/;]+)\\)([\\w\\/]+)", RegexOptions.Compiled);
