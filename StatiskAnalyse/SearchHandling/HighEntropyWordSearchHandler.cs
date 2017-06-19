@@ -19,21 +19,19 @@ namespace StatiskAnalyse.SearchHandling
 
         public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
-            var stringSearchResults = results.Where(u => u.SampleLine.Length > 16 &&
-                                                         (u.SampleLine.IndexOf(" ", StringComparison.Ordinal) ==
-                                                          -1 ||
-                                                          u.SampleLine.IndexOf(" ", StringComparison.Ordinal) >
-                                                          15) &&
-                                                         !u.SampleLine.Contains("java") &&
-                                                         !u.SampleLine.Contains("system") &&
-                                                         !u.SampleLine.Contains("cordova") &&
-                                                         !u.SampleLine.Contains("Lorg") &&
-                                                         !u.SampleLine.Contains("android") &&
-                                                         !u.SampleLine.Contains("facebook"))
+            var stringSearchResults = results.Where(
+                    u => u.SampleLine.Length > 16 &&
+                         !u.SampleLine.Contains(" ") &&
+                         !u.SampleLine.Contains("java") &&
+                         !u.SampleLine.Contains("system") &&
+                         !u.SampleLine.Contains("cordova") &&
+                         !u.SampleLine.Contains("Lorg") &&
+                         !u.SampleLine.Contains("abcdefghijklmnopqrstuvwxyz") &&
+                         !u.SampleLine.Contains("android") &&
+                         !u.SampleLine.Contains("facebook"))
                 .Distinct(new Use.UseComparer());
 
             return stringSearchResults
-                .Where(x => !x.SampleLine.Contains(" ") && !x.SampleLine.Contains("abcdefghijklmnopqrstuvwxyz"))
                 .Select(x => new EntropyResult(x.SampleLine, GetEntropy(x.SampleLine), x.File, x.Line, x.Index))
                 .Where(x => x.Entropy >= _ent)
                 .OrderByDescending(x => x.Entropy)
@@ -60,5 +58,19 @@ namespace StatiskAnalyse.SearchHandling
 
             return result;
         }
+    }
+    internal class EntropyResult : FileResultWrapper
+    {
+        public EntropyResult(string word, double entropy, string file, int line, int index)
+        {
+            Word = word;
+            Entropy = entropy;
+            File = file;
+            Line = line;
+            Index = index;
+        }
+
+        public string Word { get; set; }
+        public double Entropy { get; set; }
     }
 }

@@ -5,16 +5,18 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using StatiskAnalyse.ResultWrappers;
 using StatiskAnalyse.SearchHandling;
+using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse
 {
     internal class Program
     {
+
         private static void Main(string[] args)
         {
-            GoogleSearch.ApiKey = "";
+            HighEntropyWordWGoogleSearchHandler.ApiKey = "";
             ApkAnalysis.SavePath = "C:\\test";
-            var ApkFolder = "C:\\Users\\Perni\\Desktop\\APK";
+            var ApkFolder = "C:\\Users\\Malte\\Desktop\\apks";
             
             var linuxCmds = new[]
             {
@@ -47,8 +49,9 @@ namespace StatiskAnalyse
                 {
                     new IPv4RegexSearchHandler(),
                     //new IPv6RegexSearchHandler(),
-                    new UrlRegexSearchHandler(),
-                    new StringRegexSearchHandler("JavaMethods", javaMethods)
+                    //new UrlRegexSearchHandler(),
+                    //new StringRegexSearchHandler("JavaMethods", javaMethods)
+                    new ExecutedCommandSearchHandler()
                 },
                 ConstantStringSearchHandlers =
                 {
@@ -84,7 +87,7 @@ namespace StatiskAnalyse
                 {
                     ApkAnalysis.ProcessApk(apk, handlers);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Console.WriteLine("Error loading APK: " + apk);
                 }
@@ -103,5 +106,6 @@ namespace StatiskAnalyse
             var elapsed = DateTime.UtcNow.Subtract(starttime);
             Console.WriteLine($"Elapsed: {elapsed.Minutes} minutes and {elapsed.Seconds} seconds");
         }
+
     }
 }

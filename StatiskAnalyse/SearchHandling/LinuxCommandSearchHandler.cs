@@ -9,6 +9,8 @@ namespace StatiskAnalyse.SearchHandling
 {
     internal class LinuxCommandSearchHandler : IConstantStringSearchHandler
     {
+        // NOT IN USE ANY LONGER
+
         private readonly IEnumerable<string> _commands;
 
         public LinuxCommandSearchHandler(IEnumerable<string> commands)
@@ -20,34 +22,10 @@ namespace StatiskAnalyse.SearchHandling
 
         public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
-            const string jsinv = ", \\1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder";
-            var cmds = results.Where(x => _commands.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " ") || x.SampleLine.Contains(" " + y + " "))).ToList();
-            foreach (var result in cmds)
-            {
-                var line = result.FoundIn.Source[result.Line - 1];
-                var s = line.IndexOf('v');
-                var c = line.IndexOf(',') - s;
-                var reg = line.Substring(s, c);
-                // If appended to a stringbuilder
-                if (result.FoundIn.Source[result.Line + 1].Contains(jsinv.Replace("\\1", reg)))
-                {
-                    line = result.FoundIn.Source[result.Line + 1];
-                    s = line.IndexOf('{') + 1;
-                    c = line.IndexOf(',') - s;
-                    var sbReg = line.Substring(s, c);
-                    Console.WriteLine(line);
-                    AnalysisTools.TraceStringBuilder(apk, result.FoundIn, result.Line + 1, sbReg);
-                }
-                // If used as a string
-                else
-                {
-                    
-                }
-
-            }
-            AnalysisTools.TraceMethodCall(apk, cmds);
-            // TODO More verification of the string actually being used with Runtime->exec
-            return null;
+            return results
+                .Where(x => _commands.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " ") || x.SampleLine.Contains(" " + y + " ")))
+                .Cast<object>()
+                .ToList();
         }
     }
 }

@@ -20,9 +20,9 @@ namespace StatiskAnalyse.SearchHandling
         public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
             return results
-                .Where(
-                    x => _strings.Any(y => x.SampleLine == y || x.SampleLine.StartsWith(y + " ")))
-                .Cast<object>().ToList();
+                .Where(x => _strings.Any(y => x.SampleLine == y || x.SampleLine.Contains(y)))
+                .Cast<object>()
+                .ToList();
         }
     }
 }

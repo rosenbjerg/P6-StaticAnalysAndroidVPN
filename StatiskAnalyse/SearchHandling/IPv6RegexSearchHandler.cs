@@ -8,28 +8,26 @@ using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse.SearchHandling
 {
-    internal class IPv6RegexSearchHandler : IRegexSearchHandler
+    internal class IPv6RegexSearchHandler : IPv4RegexSearchHandler
     {
-        private static readonly WebClient _wc = new WebClient();
-        
-        public string OutputName { get; } = "IPv6";
-
-        public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
+        public override List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
-            var ips = results.Where(u => IPAddress.TryParse(u.SampleLine, out IPAddress ip));
-            return ips.Select(i => (object)new IpSearchResult(i.SampleLine, GetCountry(i.SampleLine), i.File, i.Line,
-                i.Index)).Distinct().ToList();
+            return results.Where(u => IPAddress.TryParse(u.SampleLine, out IPAddress ip)).Select(i => new IpResult
+            {
+                IP = i.SampleLine,
+                Country = GetCountry(i.SampleLine),
+                File = i.File,
+                Line = i.Line,
+                Index = i.Index
+            }).Cast<object>().ToList();
         }
 
-        private static string GetCountry(string ip)
+        public IPv6RegexSearchHandler()
         {
-            var json = _wc.DownloadString("https://freegeoip.net/json/" + ip);
-            var deez = JsonConvert.DeserializeObject<FreeGeoIpResponse>(json);
-            return deez.country_name;
+            OutputName = "IPv6";
+            Regex = new Regex(
+                "(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\r\n",
+                RegexOptions.Compiled);
         }
-
-        public Regex Regex { get; } = new Regex(
-            "(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\r\n",
-            RegexOptions.Compiled);
     }
 }

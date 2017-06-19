@@ -1,13 +1,9 @@
-﻿using System;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json.Linq;
 using StatiskAnalyse.ResultWrappers;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 
 
 namespace StatiskAnalyse
@@ -45,10 +41,6 @@ namespace StatiskAnalyse
             return end - 1;
         }
 
-
-
-
-
         private static int GetLineWith(string find, ClassFile file, int line, int start)
         {
             for (int i = line; i > start; i--)
@@ -68,16 +60,78 @@ namespace StatiskAnalyse
             var m = Util.MethodRegex.Match(l);
             if (!m.Success)
                 return "";
-            return m.Groups[3].Value;
+            return m.Groups[4].Value;
         }
 
         public static string GetClassName(ClassFile file)
         {
             var m = Util.ClassRegex.Match(file.Source[0]);
-            return m.Groups[4].Value;
+            return m.Groups[4].Value.Substring(1);
         }
 
-        internal static string TraceStringBuilder(ApkAnalysis apk, ClassFile file, int line, string register)
+        public static RegisterMachineSimulator GetRegisters(ClassFile file, int line)
+        {
+            var start = GetMethodStart(file, line);
+            var rm = new RegisterMachineSimulator();
+            for (int i = start; i < line; i++)
+            {
+                rm.ParseLine(file.Source[i]);
+            }
+            return rm;
+        }
+
+        public static string GetStringFromRegister(ClassFile file, string register, int line)
+        {
+            int i = line;
+            var l = file.Source[i];
+            var end1 = "move-result-object " + register;
+            var end2 = "const-string " + register + ", ";
+            var end3 = "const-string/jumbo " + register + ", ";
+            while (!l.EndsWith(end1) && !l.Contains(end2) && !l.Contains(end3))
+                l = file.Source[--i];
+            if (l.EndsWith(end1))
+            { // String is from a stringbuilder
+                while (!l.Contains("invoke-virtual {"+register+"}"))
+                    l = file.Source[--i];
+                return TraceStringBuilder(file, i, register);
+            }
+            if (l.Contains(end2) || l.Contains(end3))
+                return Util.ConstantStringRegex.Match(l).Groups[3].Value;
+            return "";
+        }
+
+        public static string[] TraceArray(ClassFile file, int line, string register)
+        {
+            int i = line;
+            var l = file.Source[--i];
+            var end1 = "new-array " + register;
+            while (!l.Contains(end1))
+                l = file.Source[--i];
+            var m = Util.NewArrayRegex.Match(l);
+            var rm = GetRegisters(file, i);
+            var s = rm.Get(m.Groups[2].Value);
+            var arr = new string[ParseInt(s)];
+            for (int j = i+1; j < line; j++)
+            {
+                l = file.Source[j];
+                if (l == "") continue;
+                rm.ParseLine(l);
+                m = Util.APutRegex.Match(l);
+                if (!m.Success || m.Groups[3].Value != register) continue;
+                var index = ParseInt(rm.Get(m.Groups[4].Value));
+                arr[index] = rm.Get(m.Groups[2].Value);
+            }
+            return arr;
+        }
+
+        private static int ParseInt(string input)
+        {
+            if (input.StartsWith("0x"))
+                return int.Parse(input.Substring(2), NumberStyles.HexNumber);
+            return int.Parse(input);
+        }
+
+        public static string TraceStringBuilder(ClassFile file, int line, string register)
         {
             var startLine = GetMethodStart(file, line);
             var endLine = GetMethodEnd(file, line);
@@ -102,86 +156,13 @@ namespace StatiskAnalyse
             return sb.ToString();
         }
 
-        public static void TraceMethodCall(ApkAnalysis a, List<Use> result)
+        public static IEnumerable<Use> TraceMethodCall(ApkAnalysis a, Use result)
         {
-            var results = result.AsParallel().Select(cmd =>
-            {
-                string function = GetMethodName(cmd.FoundIn, cmd.Line);
-                var cl = GetClassName(cmd.FoundIn).Replace("/", "\\/");
-                var s = " *invoke.*" + cl + ";->" + function + ".*";
-                var uses = a.Root.FindUses(new Regex(s, RegexOptions.Compiled));
-                return new {Function = function, Class = cl, Uses = uses};
-            }).OrderByDescending(x => x.Uses.Count()).ToList();
-            //foreach (var cmd in result.AsParallel())
-            //{
-            //    string function = GetMethodName(cmd.FoundIn, cmd.Line);
-            //    var cl = GetClassName(cmd.FoundIn).Replace("/", "\\/");
-            //    var s = " *invoke.*" + cl + ";->" + function + ".*";
-            //    var uses = a.Root.FindUses(new Regex(s, RegexOptions.Compiled), 0);
-            //    if (!uses.Any() || uses.Count() > 500)
-            //    {
-            //        Console.WriteLine("");
-            //    }
-            //    foreach (var use in uses)
-            //    {
-            //        //  Console.WriteLine(use.SampleLine);
-            //    }
-            //}
-            
-
-
-
-
+            string method = GetMethodName(result.FoundIn, result.Line);
+            var cl = GetClassName(result.FoundIn).Replace("/", "\\/");
+            var s = " *invoke.*" + cl + ";->" + method + ".*";
+            var uses = a.Root.FindUses(new Regex(s, RegexOptions.Compiled));
+            return uses;
         }
     }
-
-    internal static class Util
-    {
-        private const string _reg = "(v\\d+)";
-        private const string _regOrParam = "([vp]\\d+)";
-        private const string _type = "([^ :;]+)";
-        private const string _fieldOrMethod = "([^:\\(]+)";
-        private const string _inputTypes = "([^ :]*)";
-
-
-        public static Regex ConstantStringRegex =
-            new Regex($" *const-string " + _reg + ", \"(.+)\"", 
-                RegexOptions.Compiled);
-
-        public static Regex NewInstanceRegex =
-            new Regex(" *new-instance " + _reg + ", " + _type + ";?", 
-                RegexOptions.Compiled);
-
-        public static Regex MoveResultObjectRegex = 
-            new Regex(" *move-result-object " + _reg,
-                RegexOptions.Compiled);
-
-        public static Regex InvokeVirtualRegex =
-            new Regex(
-                " *invoke-virtual {" + _reg + ", " + _regOrParam + "}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";?", 
-                RegexOptions.Compiled);
-
-        public static Regex InvokeDirectRegex =
-            new Regex(
-                " *invoke-direct {" + _reg + "?}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type, 
-                RegexOptions.Compiled);
-
-        public static Regex InvokeStaticRegex =
-            new Regex(
-                " *invoke-static {" + _reg + "?}, " + _type + ";->" + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";?", 
-                RegexOptions.Compiled);
-
-        public static Regex ClassRegex = 
-            new Regex("\\.class ?(public)? ?(final)? ([a-z]+)? ?" + _type + ";", 
-                RegexOptions.Compiled);
-
-        public static Regex MethodRegex =
-            new Regex("\\.method ?([a-z]+)? ?(static|constructor)? " + _fieldOrMethod + "\\(" + _inputTypes + "\\)" + _type + ";?",
-                RegexOptions.Compiled);
-
-        public static Regex IGetRegex =
-            new Regex(" *iget-object " + _reg + ", " + _regOrParam + ", " + _type + ";->" + _fieldOrMethod + ":" + _type + ";?", 
-                RegexOptions.Compiled);
-    }
-    
 }

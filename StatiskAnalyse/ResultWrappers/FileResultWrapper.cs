@@ -6,11 +6,7 @@ namespace StatiskAnalyse.ResultWrappers
         public int Line { get; set; }
         public int Index { get; set; }
     }
-
-    public interface IRegexResult
-    {
-    }
-
+    
     public interface IResult
     {
     }

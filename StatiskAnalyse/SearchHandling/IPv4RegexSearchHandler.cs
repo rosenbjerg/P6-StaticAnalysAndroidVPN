@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -10,7 +11,7 @@ namespace StatiskAnalyse.SearchHandling
 {
     internal class IPv4RegexSearchHandler : IRegexSearchHandler
     {
-        private static readonly WebClient _wc = new WebClient();
+        protected static readonly WebClient _wc = new WebClient();
 
         private static readonly string[] _dnsServerIps =
         {
@@ -21,16 +22,21 @@ namespace StatiskAnalyse.SearchHandling
             "4.2.2.4"
         };
         
-        public string OutputName { get; } = "IPv4";
+        public string OutputName { get; protected set; } = "IPv4";
 
-        public List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
+        public virtual List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
-            var ips = results.Where(u => IPAddress.TryParse(u.SampleLine, out IPAddress ip));
-            return ips.Select(i => (object) new IpSearchResult(i.SampleLine, GetCountry(i.SampleLine), i.File, i.Line,
-                i.Index)).Distinct().ToList();
+            return results.Where(u => IPAddress.TryParse(u.SampleLine, out IPAddress ip)).Select(i => new IpResult
+            {
+                IP = i.SampleLine,
+                Country = GetCountry(i.SampleLine),
+                File = i.File,
+                Line = i.Line,
+                Index = i.Index
+            }).Cast<object>().ToList();
         }
 
-        private static string GetCountry(string ip)
+        protected static string GetCountry(string ip)
         {
             if (ip == "127.0.0.1")
                 return "localhost";
@@ -40,11 +46,26 @@ namespace StatiskAnalyse.SearchHandling
                 return "local";
             if (_dnsServerIps.Contains(ip))
                 return "DNS server";
-            var json = _wc.DownloadString("https://freegeoip.net/json/" + ip);
-            var deez = JsonConvert.DeserializeObject<FreeGeoIpResponse>(json);
-            return deez.country_name;
+            try
+            {
+                var json = _wc.DownloadString("https://freegeoip.net/json/" + ip);
+                var m = _countryRegex.Match(json);
+                if (m.Success)
+                    return m.Groups[1].Value;
+                return "(Could not check country)";
+            }
+            catch (WebException)
+            {
+                return "(Could not check country)";
+            }
         }
+        protected static Regex _countryRegex = new Regex("\"country_name\":\"([^\"]*)\"", RegexOptions.Compiled);
+        public Regex Regex { get; protected set; } = new Regex("[0-9]{1,3}(\\.[0-9]{1,3}){3}", RegexOptions.Compiled);
+    }
 
-        public Regex Regex { get; } = new Regex("[0-9]{1,3}(\\.[0-9]{1,3}){3}", RegexOptions.Compiled);
+    class IpResult : FileResultWrapper
+    {
+        public string IP { get; set; }
+        public string Country { get; set; }
     }
 }

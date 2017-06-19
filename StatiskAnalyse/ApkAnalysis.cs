@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StatiskAnalyse.ResultWrappers;
 
@@ -15,10 +16,7 @@ namespace StatiskAnalyse
         public static string BakSmaliPath = Path.GetFullPath("../../TOOLS/baksmali-2.2.1.jar");
         public static string AaptPah = "../../TOOLS/aapt.exe";
         public static string SavePath = Path.GetFullPath("/STAN");
-
-        private static readonly Regex StringConstantRegex = new Regex("const-string v[0-9]{1,2}, \"(.+)\"", RegexOptions.Compiled);
         
-
         public string ManifestXmlTree { get; set; }
         public ClassFileDirectory Root { get; private set; }
         public string Name { get; private set; }
@@ -32,45 +30,31 @@ namespace StatiskAnalyse
         public static void ProcessApk(string path, SearchHandlerContainer container)
         {
             var aa = InternalSmaliToolChain(path);
-            var stringConstants = aa.Root.FindUses(StringConstantRegex, 1);
-            var tu = aa.Root.FindUses(aa, container.RegexSearchHandlers);
-            foreach (var tuple in tu)
-                SaveFile(aa.Name, tuple);
+            if (container.RegexSearchHandlers.Count != 0)
+                container.RegexSearchHandlers.AsParallel()
+                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, aa.Root.FindUses(aa, sh)));
+
             if (container.ManifestSearchHandlers.Count != 0)
-            {
-                var ntu = container.ManifestSearchHandlers.AsParallel().Select(
-                    t => new Tuple<string, object>(t.OutputName, t.Process(aa.ManifestXmlTree)));
-                foreach (var tuple in ntu)
-                    SaveFile(aa.Name, tuple);
-            }
+                container.ManifestSearchHandlers.AsParallel()
+                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa.ManifestXmlTree)));
+
             if (container.StructureSearchHandlers.Count != 0)
-            {
-                var ntu = container.StructureSearchHandlers.AsParallel().Select(
-                    t => new Tuple<string, object>(t.OutputName, t.Process(aa)));
-                foreach (var tuple in ntu)
-                    SaveFile(aa.Name, tuple);
-            }
+                container.StructureSearchHandlers.AsParallel()
+                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa)));
+
+            var stringConstants = aa.Root.FindUses(Util.ConstantStringRegex, 3).ToList();
             if (container.ConstantStringSearchHandlers.Count != 0)
-            {
-                var ntu = container.ConstantStringSearchHandlers.AsParallel().Select(
-                    t => new Tuple<string, object>(t.OutputName, t.Process(aa, stringConstants)));
-                foreach (var tuple in ntu)
-                    SaveFile(aa.Name, tuple);
-            }
-            SaveFile(aa.Name, new Tuple<string, object>("StringConstants", stringConstants));
+                container.ConstantStringSearchHandlers.AsParallel()
+                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa, stringConstants)));
+
+            SaveFile(aa.Name, "StringConstants", stringConstants);
             aa.Clear();
         }
 
-        private static void SaveFile(string apk, Tuple<string, List<object>> tuple)
+        private static void SaveFile<T>(string apk, string name, List<T> results)
         {
-            File.WriteAllText(Path.Combine(SavePath, apk, tuple.Item1 + ".json"),
-                JsonConvert.SerializeObject(tuple.Item2, Formatting.Indented));
-        }
-
-        private static void SaveFile(string apk, Tuple<string, object> tuple)
-        {
-            File.WriteAllText(Path.Combine(SavePath, apk, tuple.Item1 + ".json"),
-                JsonConvert.SerializeObject(tuple.Item2, Formatting.Indented));
+            File.WriteAllText(Path.Combine(SavePath, apk, name + ".json"),
+                JsonConvert.SerializeObject(results, Formatting.Indented));
         }
 
 

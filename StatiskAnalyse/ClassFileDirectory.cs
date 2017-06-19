@@ -34,7 +34,7 @@ namespace StatiskAnalyse
         {
             var retVal = new ClassFileDirectory
             {
-                Name = new DirectoryInfo(rootDir).Name,
+                Name = rootDir.Substring(rootDir.LastIndexOf(Path.DirectorySeparatorChar) + 1),
                 DirPath = rootDir
             };
             var dirs = Directory.EnumerateDirectories(rootDir);
@@ -45,7 +45,7 @@ namespace StatiskAnalyse
             
             return retVal;
         }
-        
+
         public IEnumerable<Use> FindUses(Regex pattern, short regexGroup = 0)
         {
             return FindUsesInDir(this, pattern, regexGroup);
@@ -78,11 +78,9 @@ namespace StatiskAnalyse
             return Name;
         }
 
-        public List<Tuple<string, List<object>>> FindUses(ApkAnalysis apk, List<IRegexSearchHandler> lookFor)
+        public List<object> FindUses(ApkAnalysis apk, IRegexSearchHandler lookFor)
         {
-            return lookFor.AsParallel()
-                .Select(p => new Tuple<string, List<object>>(p.OutputName, p.Process(apk, FindUsesInDir(this, p.Regex, 0))))
-                .ToList();
+            return lookFor.Process(apk, FindUsesInDir(this, lookFor.Regex, 0));
         }
     }
 }

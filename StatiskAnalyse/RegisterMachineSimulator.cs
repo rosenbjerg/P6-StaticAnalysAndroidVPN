@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace StatiskAnalyse
 {
-    class RegisterMachineSimulator
+    public class RegisterMachineSimulator
     {
         private readonly Dictionary<string, string> _dict = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _dictType = new Dictionary<string, string>();
@@ -25,42 +25,75 @@ namespace StatiskAnalyse
 
         public void ParseLine(string line)
         {
-            Match m;
-            m = Util.ConstantStringRegex.Match(line);
+            var m = Util.ConstantStringRegex.Match(line);
             if (m.Success)
-                UpdateRegister(m.Groups[1].Value, m.Groups[2].Value, "Ljava/lang/String");
+            {
+                UpdateRegister(m.Groups[2].Value, m.Groups[3].Value, "Ljava/lang/String");
+                return;
+            }
+
+            m = Util.ConstantNumberRegex.Match(line);
+            if (m.Success)
+            {
+                UpdateRegister(m.Groups[3].Value, m.Groups[4].Value, m.Groups[4].Value.Contains(".") ? "float" : "int");
+                return;
+            }
+
             m = Util.NewInstanceRegex.Match(line);
             if (m.Success)
+            {
                 UpdateRegister(m.Groups[1].Value, "new-instance", m.Groups[2].Value);
-            m = Util.MoveResultObjectRegex.Match(line);
+                return;
+            }
+
+            m = Util.NewArrayRegex.Match(line);
             if (m.Success)
+            {
+                UpdateRegister(m.Groups[1].Value, "new-array", $"{m.Groups[3].Value}[{Get(m.Groups[2].Value)}]");
+                return;
+            }
+
+            m = Util.MoveResultRegex.Match(line);
+            if (m.Success)
+            {
                 UpdateRegister(m.Groups[1].Value, _latestResult, _latestResultType);
+                return;
+            }
+
             m = Util.InvokeVirtualRegex.Match(line);
             if (m.Success)
             {
-                var t = m.Groups[5].Value;
-                _latestResult = "Object";
-                _latestResultType = t;
+                UpdateLatestResult("Object", m.Groups[5].Value);
+                return;
             }
+
             m = Util.InvokeStaticRegex.Match(line);
             if (m.Success)
             {
-                var t = m.Groups[4].Value;
-                _latestResult = "Object";
-                _latestResultType = t;
+                UpdateLatestResult("Object", m.Groups[4].Value);
+                return;
+            }
+
+            m = Util.AGetRegex.Match(line);
+            if (m.Success)
+            {
+                UpdateRegister(m.Groups[2].Value, "Object", GetType(m.Groups[3].Value).Substring(1));
+                return;
             }
 
             m = Util.IGetRegex.Match(line);
             if (m.Success)
             {
-
-                var o = m.Groups[1].Value;
-                var i = m.Groups[2].Value;
-                var p = m.Groups[4].Value;
-                var t = m.Groups[5].Value;
-                UpdateRegister(o, "\\" + i + "->" + p, t);
+                UpdateRegister(m.Groups[2].Value, "Object", m.Groups[6].Value);
+                return;
             }
 
+        }
+
+        private void UpdateLatestResult(string val, string type)
+        {
+            _latestResult = val;
+            _latestResultType = type;
         }
 
         private void UpdateRegister(string reg, string val, string type)
