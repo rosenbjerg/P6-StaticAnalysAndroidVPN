@@ -16,7 +16,7 @@ namespace StatiskAnalyse
         {
             HighEntropyWordWGoogleSearchHandler.ApiKey = "";
             ApkAnalysis.SavePath = "C:\\test";
-            var ApkFolder = "C:\\Users\\Malte\\Desktop\\apks";
+            var ApkFolder = "C:\\apks";
             
             var linuxCmds = new[]
             {
@@ -51,6 +51,7 @@ namespace StatiskAnalyse
                     //new IPv6RegexSearchHandler(),
                     //new UrlRegexSearchHandler(),
                     //new StringRegexSearchHandler("JavaMethods", javaMethods)
+                    new ClassLoaderUsageSearchHandler(),
                     new ExecutedCommandSearchHandler()
                 },
                 ConstantStringSearchHandlers =
@@ -70,7 +71,7 @@ namespace StatiskAnalyse
                 }
             };
             var apks = Directory.EnumerateFiles(ApkFolder, "*.apk")
-                .Where(x => x.Contains("Hotspot Shield Free") || x.Contains("Amaze"));
+                .Where(x => x.Contains("Hotspot Shield Free") || x.Contains("Amaze") || x.Contains("Fly") || x.Contains("Ghost"));
 
             PerformAnalysis(apks, handlers);
             Console.ReadKey();

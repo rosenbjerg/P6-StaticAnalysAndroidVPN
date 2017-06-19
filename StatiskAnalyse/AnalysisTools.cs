@@ -19,11 +19,10 @@ namespace StatiskAnalyse
             var prev = file.Source[start];
             while (!prev.StartsWith(".method"))
             {
-                start = start - 1;
-                if (start < 0) return -1;
+                if (--start < 0) return -1;
                 prev = file.Source[start];
             }
-            return start + 1;
+            return start + 2;
         }
 
         /// <summary>
@@ -51,9 +50,21 @@ namespace StatiskAnalyse
             return -1;
         }
 
+        public static string GetMethodInputTypes(ClassFile file, int line)
+        {
+            var start = GetMethodStart(file, line) - 2;
+            if (start < 0)
+                return "";
+            var l = file.Source[start];
+            var m = Util.MethodRegex.Match(l);
+            if (!m.Success)
+                return "";
+            return m.Groups[5].Value;
+        }
+
         public static string GetMethodName(ClassFile file, int line)
         {
-            var start = GetMethodStart(file, line) -1;
+            var start = GetMethodStart(file, line) - 2;
             if (start < 0)
                 return "";
             var l = file.Source[start];
@@ -159,8 +170,9 @@ namespace StatiskAnalyse
         public static IEnumerable<Use> TraceMethodCall(ApkAnalysis a, Use result)
         {
             string method = GetMethodName(result.FoundIn, result.Line);
-            var cl = GetClassName(result.FoundIn).Replace("/", "\\/");
-            var s = " *invoke.*" + cl + ";->" + method + ".*";
+            string type = GetMethodInputTypes(result.FoundIn, result.Line);
+            var cl = GetClassName(result.FoundIn);
+            var s = " *invoke.*L" + Regex.Escape(cl) + ";->" + Regex.Escape(method) + "\\("+Regex.Escape(type) +"\\).*";
             var uses = a.Root.FindUses(new Regex(s, RegexOptions.Compiled));
             return uses;
         }

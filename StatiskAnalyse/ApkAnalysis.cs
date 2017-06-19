@@ -46,7 +46,7 @@ namespace StatiskAnalyse
             if (container.ConstantStringSearchHandlers.Count != 0)
                 container.ConstantStringSearchHandlers.AsParallel()
                     .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa, stringConstants)));
-
+            
             SaveFile(aa.Name, "StringConstants", stringConstants);
             aa.Clear();
         }

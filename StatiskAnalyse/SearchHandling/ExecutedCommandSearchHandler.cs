@@ -34,6 +34,7 @@ namespace StatiskAnalyse.SearchHandling
                     Command = p,
                     Method = AnalysisTools.GetMethodName(use.FoundIn, use.Line),
                     Class = AnalysisTools.GetClassName(use.FoundIn),
+                    InputTypes = AnalysisTools.GetMethodInputTypes(use.FoundIn, use.Line).Split(new []{ ';' }, StringSplitOptions.RemoveEmptyEntries),
                     SampleLine = use.SampleLine,
                     Line = use.Line,
                     File = use.File,
@@ -51,6 +52,7 @@ namespace StatiskAnalyse.SearchHandling
         public string Command { get; set; }
         public string Method { get; set; }
         public string Class { get; set; }
+        public string[] InputTypes { get; set; }
         public string SampleLine { get; set; }
         public IEnumerable<Use> Uses { get; set; }
     }
