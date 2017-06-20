@@ -34,8 +34,7 @@ namespace StatiskAnalyse
             var end = line;
             while (!prev.StartsWith(".end method"))
             {
-                end = end + 1;
-                prev = file.Source[end];
+                prev = file.Source[--end];
             }
             return end - 1;
         }
