@@ -112,6 +112,8 @@ namespace StatiskAnalyse
 
         public static string[] TraceArray(ClassFile file, int line, string register)
         {
+            if (register.StartsWith("p"))
+                return new[] {"\\" + register};
             int i = line;
             var l = file.Source[--i];
             var end1 = "new-array " + register;
