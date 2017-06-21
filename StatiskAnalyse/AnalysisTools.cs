@@ -133,9 +133,13 @@ namespace StatiskAnalyse
                     
                 if (v.Contains("move-result"))
                 {
-                    while (!_sbTs.IsMatch(l))
-                        l = file.Source[--i];
-                    return TraceStringBuilder(file, i, register);
+                    var m = Util.InvokeRegex.Match(file.Source[i-2]);
+                    var type = m.Groups[4].Value;
+                    var method = m.Groups[5].Value;
+                    if ((type == "Ljava/lang/StringBuilder" || type == "Ljava/lang/StringBuffer") && method == "toString")
+                    {
+                        return TraceStringBuilder(file, i, register);
+                    }
                 }
                 if (v.Contains("const"))
                 {
@@ -213,20 +217,20 @@ namespace StatiskAnalyse
         public static string TraceStringBuilder(ClassFile file, int line, string register)
         {
             var startLine = GetMethodStart(file, line);
-            var ni = GetLineWith($"new-instance {register}, Ljava/lang/StringBuilder", file, line, startLine);
+            var ni = GetLineWith($"new-instance {register}, Ljava/lang/StringBu", file, line, startLine);
             var rm = new RegisterMachineSimulator();
             var sb = new StringBuilder();
             for (int i = ni; i < line; i++)
             {
                 var tl = file.Source[i];
                 if (tl == "") continue;
-                if (tl.EndsWith("Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;"))
+                if (tl.EndsWith("er;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;"))
                 {
                     var m = Util.InvokeRegex.Match(tl);
                     var reg = m.Groups[3].Value.Split(',')[1].Trim();
                     sb.Append(rm.Get(reg));
                 }
-                if (tl.Contains("invoke-virtual {"+register+"}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;"))
+                if (tl.Contains("{" + register + "}") && tl.EndsWith("er;->toString()Ljava/lang/String;"))
                      return sb.ToString();
                 rm.ParseLine(tl);
 
