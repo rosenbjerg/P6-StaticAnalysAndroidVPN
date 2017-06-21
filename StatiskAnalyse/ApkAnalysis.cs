@@ -80,7 +80,7 @@ namespace StatiskAnalyse
                     .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa, stringConstants)));
 #if DEBUG
                 Console.WriteLine($"ConstantStringSearchHandlers took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds), 2} seconds");
-                Console.ReadKey();
+                
 #endif
             }
 
