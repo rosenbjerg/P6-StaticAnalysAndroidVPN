@@ -138,7 +138,7 @@ namespace StatiskAnalyse
                     var method = m.Groups[5].Value;
                     if ((type == "Ljava/lang/StringBuilder" || type == "Ljava/lang/StringBuffer") && method == "toString")
                     {
-                        return TraceStringBuilder(file, i, register);
+                        return TraceStringBuilder(file, i, m.Groups[3].Value);
                     }
                 }
                 if (v.Contains("const"))

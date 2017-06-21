@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace StatiskAnalyse
@@ -30,60 +31,74 @@ namespace StatiskAnalyse
             Console.WriteLine("Processing " + Path.GetFileName(path));
 #endif
             var aa = InternalSmaliToolChain(path);
-            if (container.RegexSearchHandlers.Count != 0)
-            {
-#if DEBUG
-                var started = DateTime.UtcNow;
-#endif
-                container.RegexSearchHandlers.AsParallel()
-                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, aa.Root.FindUses(aa, sh)));
-#if DEBUG
-                Console.WriteLine($"RegexSearchHandlers took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds, 2)} seconds");
-#endif
-            }
-            if (container.ManifestSearchHandlers.Count != 0)
-            {
-#if DEBUG
-                var started = DateTime.UtcNow;
-#endif
-                container.ManifestSearchHandlers.AsParallel()
-                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa.ManifestXmlTree)));
-#if DEBUG
-                Console.WriteLine($"ManifestSearchHandlers took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds, 2)} seconds");
-#endif
-            }
-
-            if (container.StructureSearchHandlers.Count != 0)
-            {
-#if DEBUG
-                var started = DateTime.UtcNow;
-#endif
-                container.StructureSearchHandlers.AsParallel()
-                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa.Root)));
-#if DEBUG
-                Console.WriteLine($"StructureSearchHandlers took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds, 2)} seconds");
-#endif
-            }
-
+            var tasks = new List<Task>();
+            tasks.AddRange(container.RegexSearchHandlers.Select(sh => Task.Run(() => SaveFile(aa.Name, sh.OutputName, aa.Root.FindUses(aa, sh)))));
+            tasks.AddRange(container.ManifestSearchHandlers.Select(sh => Task.Run(() => SaveFile(aa.Name, sh.OutputName, sh.Process(aa.ManifestXmlTree)))));
+            tasks.AddRange(container.StructureSearchHandlers.Select(sh => Task.Run(() => SaveFile(aa.Name, sh.OutputName, sh.Process(aa.Root)))));
             if (container.ConstantStringSearchHandlers.Count != 0)
             {
-#if DEBUG
-                var started = DateTime.UtcNow;
-#endif
-                var stringConstants = aa.Root.FindUses(Util.ConstantStringRegex, 3).ToList();
-                SaveFile(aa.Name, "StringConstants", stringConstants);
-#if DEBUG
-                Console.WriteLine($"Finding all strings constants took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds, 2)} seconds");
-                started = DateTime.UtcNow;
-#endif
-                container.ConstantStringSearchHandlers.AsParallel()
-                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa, stringConstants)));
-#if DEBUG
-                Console.WriteLine($"ConstantStringSearchHandlers took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds), 2} seconds");
-                
-#endif
+                var st = Task.Run(() => aa.Root.FindUses(Util.ConstantStringRegex, 3).ToList()).ContinueWith(s =>
+                {
+                    var res = s.Result;
+                    SaveFile(aa.Name, "StringConstants", res);
+                    tasks.AddRange(container.ConstantStringSearchHandlers.Select(sh => Task.Run(() => SaveFile(aa.Name, sh.OutputName, sh.Process(aa, res)))));
+                });
             }
 
+//            if (container.RegexSearchHandlers.Count != 0)
+//            {
+//#if DEBUG
+//                var started = DateTime.UtcNow;
+//#endif
+//                container.RegexSearchHandlers.AsParallel()
+//                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, aa.Root.FindUses(aa, sh)));
+//#if DEBUG
+//                Console.WriteLine($"RegexSearchHandlers took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds, 2)} seconds");
+//#endif
+//            }
+//            if (container.ManifestSearchHandlers.Count != 0)
+//            {
+//#if DEBUG
+//                var started = DateTime.UtcNow;
+//#endif
+//                container.ManifestSearchHandlers.AsParallel()
+//                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa.ManifestXmlTree)));
+//#if DEBUG
+//                Console.WriteLine($"ManifestSearchHandlers took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds, 2)} seconds");
+//#endif
+//            }
+
+//            if (container.StructureSearchHandlers.Count != 0)
+//            {
+//#if DEBUG
+//                var started = DateTime.UtcNow;
+//#endif
+//                container.StructureSearchHandlers.AsParallel()
+//                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa.Root)));
+//#if DEBUG
+//                Console.WriteLine($"StructureSearchHandlers took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds, 2)} seconds");
+//#endif
+//            }
+
+//            if (container.ConstantStringSearchHandlers.Count != 0)
+//            {
+//#if DEBUG
+//                var started = DateTime.UtcNow;
+//#endif
+//                var stringConstants = aa.Root.FindUses(Util.ConstantStringRegex, 3).ToList();
+//                SaveFile(aa.Name, "StringConstants", stringConstants);
+//#if DEBUG
+//                Console.WriteLine($"Finding all strings constants took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds, 2)} seconds");
+//                started = DateTime.UtcNow;
+//#endif
+//                container.ConstantStringSearchHandlers.AsParallel()
+//                    .ForAll(sh => SaveFile(aa.Name, sh.OutputName, sh.Process(aa, stringConstants)));
+//#if DEBUG
+//                Console.WriteLine($"ConstantStringSearchHandlers took {Math.Round(DateTime.UtcNow.Subtract(started).TotalSeconds), 2} seconds");
+                
+//#endif
+//            }
+            Task.WaitAll(tasks.ToArray());
             aa.Clear();
         }
 
