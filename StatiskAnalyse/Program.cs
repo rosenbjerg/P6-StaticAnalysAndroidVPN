@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using StatiskAnalyse.ResultWrappers;
 using StatiskAnalyse.SearchHandling;
-using StatiskAnalyse.SearchHandling.Structure;
 
 namespace StatiskAnalyse
 {

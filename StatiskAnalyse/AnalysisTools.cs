@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using StatiskAnalyse.ResultWrappers;
 using System.Globalization;
-using System.Reflection.Emit;
 using System.Text;
 
 
