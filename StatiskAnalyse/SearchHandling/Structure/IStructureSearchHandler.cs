@@ -6,7 +6,7 @@ namespace StatiskAnalyse.SearchHandling.Structure
     {
         string OutputName { get; }
 
-        List<object> Process(ApkAnalysis apk);
+        List<object> Process(ClassFileDirectory apkRoot);
     }
     
 }

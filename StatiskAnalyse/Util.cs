@@ -6,7 +6,7 @@ namespace StatiskAnalyse
     {
         private const string Reg = "(v\\d+)";
         private const string RegOrParam = "([vp]\\d+)";
-        private const string RegOrParams = "(([vp]\\d+),? )*";
+        private const string Parameters = "([^}{]*)";
         private const string Type = "([^ :;]+)";
         private const string FieldOrMethod = "([^:\\(]+)";
         private const string InputTypes = "([^ :]*)";
@@ -29,19 +29,19 @@ namespace StatiskAnalyse
                 RegexOptions.Compiled);
 
         public static Regex MoveResultRegex = 
-            new Regex(" *move-result-[a-z]+ " + Reg,
+            new Regex(" *move-result-[a-z]+ " + Reg + ";?",
                 RegexOptions.Compiled);
 
-        public static Regex InvokeVirtualRegex =
-            new Regex(" *invoke-virtual {" + Reg + ", " + RegOrParam + "}, " + Type + ";->" + FieldOrMethod + "\\(" + InputTypes + "\\)" + Type + ";?", 
+        public static Regex MoveRegex =
+            new Regex(" *move(-object|-wide)?(/\\w+])? " + Reg + ", " + RegOrParam + ";?",
                 RegexOptions.Compiled);
 
-        public static Regex InvokeDirectRegex =
-            new Regex(" *invoke-direct {" + Reg + "?}, " + Type + ";->" + FieldOrMethod + "\\(" + InputTypes + "\\)" + Type, 
+        public static Regex InvokeRegex =
+            new Regex(" *invoke-([a-z]+)(/range)? {" + Parameters + "}, " + Type + ";->" + FieldOrMethod + "\\(" + InputTypes + "\\)" + Type + ";?",
                 RegexOptions.Compiled);
 
-        public static Regex InvokeStaticRegex =
-            new Regex(" *invoke-static {" + Reg + "?}, " + Type + ";->" + FieldOrMethod + "\\(" + InputTypes + "\\)" + Type + ";?", 
+        public static Regex ConversionRegex =
+            new Regex(" *[a-z]+-to-([a-z]+) " + Reg + ", " + RegOrParam + ";?",
                 RegexOptions.Compiled);
 
         public static Regex ClassRegex = 
@@ -54,6 +54,10 @@ namespace StatiskAnalyse
 
         public static Regex IGetRegex =
             new Regex(" *iget(-[a-z]+)? " + Reg + ", " + RegOrParam + ", " + Type + ";->" + FieldOrMethod + ":" + Type + ";?", 
+                RegexOptions.Compiled);
+
+        public static Regex SGetRegex =
+            new Regex(" *sget[^ ]* (v\\d+), " + Type + ";->" + FieldOrMethod + ":" + Type + ";?", 
                 RegexOptions.Compiled);
 
         public static Regex APutRegex =

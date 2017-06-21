@@ -11,14 +11,14 @@ namespace StatiskAnalyse.SearchHandling
 
         public string OutputName { get; } = "Trackers";
 
-        public List<object> Process(ApkAnalysis apk)
+        public List<object> Process(ClassFileDirectory apkRoot)
         {
             var retVal = new List<object>();
             foreach (var tracker in Trackers)
             {
                 var found = false;
                 var tt = tracker.Split('/');
-                var root = apk.Root;
+                var root = apkRoot;
                 for (var i = 0; i < tt.Length; i++)
                 {
                     var s = tt[i];

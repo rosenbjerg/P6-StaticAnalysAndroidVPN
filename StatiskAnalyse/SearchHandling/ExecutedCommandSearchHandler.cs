@@ -21,10 +21,10 @@ namespace StatiskAnalyse.SearchHandling
                 switch (t)
                 {
                     case "Ljava/lang/String":
-                        p = AnalysisTools.GetStringFromRegister(use.FoundIn, r, use.Line);
+                        p = AnalysisTools.GetRegisterValue(use.FoundIn, r, use.Line-1);
                         break;
                     case "[Ljava/lang/String":
-                        p = string.Join(" ", AnalysisTools.TraceArray(use.FoundIn, use.Line, r));
+                        p = string.Join(" ", AnalysisTools.TraceArray(use.FoundIn, use.Line-1, r));
                         break;
                     default:
                         throw new Exception("ExecutedCommandSearchHandler unable to process '" + use.SampleLine + "'");

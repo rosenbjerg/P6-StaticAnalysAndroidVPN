@@ -13,14 +13,14 @@ namespace StatiskAnalyse
         public string Get(string register)
         {
             if (register.StartsWith("p"))
-                return "\\" + register;
+                return "?(" + register + ")";
             string ret;
-            return _dict.TryGetValue(register, out ret) ? ret : "";
+            return _dict.TryGetValue(register, out ret) ? ret : $"?({register})";
         }
         public string GetType(string register)
         {
             string ret;
-            return _dictType.TryGetValue(register, out ret) ? ret : "";
+            return _dictType.TryGetValue(register, out ret) ? ret : $"?({register})";
         }
 
         public void ParseLine(string line)
@@ -28,7 +28,7 @@ namespace StatiskAnalyse
             var m = Util.ConstantStringRegex.Match(line);
             if (m.Success)
             {
-                UpdateRegister(m.Groups[2].Value, m.Groups[3].Value, "Ljava/lang/String");
+                UpdateRegister(m.Groups[2].Value, m.Groups[3].Value, "string");
                 return;
             }
 
@@ -42,14 +42,14 @@ namespace StatiskAnalyse
             m = Util.NewInstanceRegex.Match(line);
             if (m.Success)
             {
-                UpdateRegister(m.Groups[1].Value, "new-instance", m.Groups[2].Value);
+                UpdateRegister(m.Groups[1].Value, "object", m.Groups[2].Value);
                 return;
             }
 
             m = Util.NewArrayRegex.Match(line);
             if (m.Success)
             {
-                UpdateRegister(m.Groups[1].Value, "new-array", $"{m.Groups[3].Value}[{Get(m.Groups[2].Value)}]");
+                UpdateRegister(m.Groups[1].Value, "array", $"{m.Groups[3].Value}[{Get(m.Groups[2].Value)}]");
                 return;
             }
 
@@ -60,34 +60,47 @@ namespace StatiskAnalyse
                 return;
             }
 
-            m = Util.InvokeVirtualRegex.Match(line);
+            m = Util.MoveRegex.Match(line);
             if (m.Success)
             {
-                UpdateLatestResult("Object", m.Groups[5].Value);
+                UpdateRegister(m.Groups[3].Value, Get(m.Groups[4].Value), GetType(m.Groups[4].Value));
                 return;
             }
 
-            m = Util.InvokeStaticRegex.Match(line);
+            m = Util.InvokeRegex.Match(line);
             if (m.Success)
             {
-                UpdateLatestResult("Object", m.Groups[4].Value);
+                UpdateLatestResult($"?({m.Groups[4].Value}->{m.Groups[5].Value}({m.Groups[6].Value}))", m.Groups[7].Value);
                 return;
             }
-
+            
             m = Util.AGetRegex.Match(line);
             if (m.Success)
             {
-                UpdateRegister(m.Groups[2].Value, "Object", GetType(m.Groups[3].Value).Substring(1));
+                UpdateRegister(m.Groups[2].Value, $"?({m.Groups[3].Value}[{Get(m.Groups[4].Value)}])", GetType(m.Groups[3].Value).Substring(1));
                 return;
             }
 
             m = Util.IGetRegex.Match(line);
             if (m.Success)
             {
-                UpdateRegister(m.Groups[2].Value, "Object", m.Groups[6].Value);
+                UpdateRegister(m.Groups[2].Value, $"?({m.Groups[4].Value}->{m.Groups[5].Value})", m.Groups[6].Value);
                 return;
             }
 
+            m = Util.SGetRegex.Match(line);
+            if (m.Success)
+            {
+                UpdateRegister(m.Groups[1].Value, $"?({m.Groups[2].Value}->{m.Groups[3].Value})", m.Groups[4].Value);
+                return;
+            }
+
+            m = Util.ConversionRegex.Match(line);
+            if (m.Success)
+            {
+                UpdateRegister(m.Groups[2].Value, Get(m.Groups[3].Value), m.Groups[1].Value);
+                return;
+            }
         }
 
         private void UpdateLatestResult(string val, string type)
