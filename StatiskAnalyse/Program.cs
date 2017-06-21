@@ -46,6 +46,7 @@ namespace StatiskAnalyse
             //.Where(x => x.Contains("Hotspot Shield Free") || x.Contains("Amaze") || x.Contains("Fly") || x.Contains("Ghost"));
 
             PerformAnalysis(apks, handlers);
+            Console.ReadKey();
         }
 
         private static void PerformAnalysis(IEnumerable<string> apks, SearchHandlerContainer handlers)
