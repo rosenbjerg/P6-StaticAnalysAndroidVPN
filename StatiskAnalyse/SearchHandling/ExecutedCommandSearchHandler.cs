@@ -15,8 +15,9 @@ namespace StatiskAnalyse.SearchHandling
             return results.AsParallel().Select(use =>
             {
                 var m = Regex.Match(use.SampleLine);
-                var r = m.Groups[1].Value;
                 var t = m.Groups[3].Value;
+                var regs = m.Groups[1].Value.Split(',');
+                var r = regs[0].Trim();
                 string p;
                 switch (t)
                 {
@@ -44,7 +45,7 @@ namespace StatiskAnalyse.SearchHandling
 
         }
 
-        public Regex Regex { get; } = new Regex(" *invoke-virtual {v\\d+, ([vp]\\d+)}, Ljava\\/lang\\/Runtime;->exec\\((([^ :;]+);*)\\)([^ :;]+);?", RegexOptions.Compiled);
+        public Regex Regex { get; } = new Regex(" *invoke-virtual {v\\d+, ([^}]+)}, Ljava\\/lang\\/Runtime;->exec\\((([^ :;]+);*)\\)([^ :;]+);?", RegexOptions.Compiled);
     }
 
     class ExecutedCommandResult : FileResultWrapper
