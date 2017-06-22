@@ -7,7 +7,7 @@ namespace StatiskAnalyse.SearchHandling
 {
     public class PermissionSearchHandler : IManifestSearchHandler
     {
-        private static readonly Regex PermissionRegex = new Regex("android\\.permission\\.([A-Za-z_]+)");
+        private static readonly Regex PermissionRegex = new Regex("\"android\\.permission\\.(\\w+)\"");
 
         public string OutputName { get; } = "Permissions";
 
