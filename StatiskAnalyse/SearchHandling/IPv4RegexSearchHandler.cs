@@ -24,7 +24,7 @@ namespace StatiskAnalyse.SearchHandling
 
         public virtual List<object> Process(ApkAnalysis apk, IEnumerable<Use> results)
         {
-            return results.Where(u => IPAddress.TryParse(u.SampleLine, out IPAddress ip)).Select(i => new IpResult
+            return results.Where(u => Regex.IsMatch(u) && IPAddress.TryParse(u.SampleLine, out IPAddress ip)).Select(i => new IpResult
             {
                 IP = i.SampleLine,
                 Country = GetCountry(i.SampleLine),

@@ -40,9 +40,9 @@ namespace StatiskAnalyse
                     new LibrarySearchHandler()
                 }
             };
-            var apks = Directory.EnumerateFiles(ApkFolder, "*.apk");
+            var apks = Directory.EnumerateFiles(ApkFolder, "*.apk")
                 //.Where(x => x.Contains("HideMe"));
-            //.Take(25);
+            .Take(2);
             //.Where(x => x.Contains("Hotspot Shield Free") || x.Contains("Amaze") || x.Contains("Fly") || x.Contains("Ghost"));
 
             PerformAnalysis(apks, handlers);
