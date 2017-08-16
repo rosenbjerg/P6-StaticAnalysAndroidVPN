@@ -75,6 +75,8 @@
     <Compile Include="RegisterMachineSimulator.cs" />
     <Compile Include="SearchHandlerContainer.cs" />
     <Compile Include="SearchHandling\ClassLoaderUsageSearchHandler.cs" />
+    <Compile Include="SearchHandling\ReflectionSearchHandler.cs" />
+    <Compile Include="SearchHandling\ReflectionSetAccesabillitySearchHandler.cs" />
     <Compile Include="SearchHandling\IPv6RegexSearchHandler.cs" />
     <Compile Include="SearchHandling\LibrarySearchHandler.cs" />
     <Compile Include="SearchHandling\ExecutedCommandSearchHandler.cs" />

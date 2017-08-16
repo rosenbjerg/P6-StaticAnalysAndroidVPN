@@ -8,6 +8,7 @@ namespace StatiskAnalyse
         public string FilePath { get; set; }
         public string[] Source { get; private set; }
 
+
         public static ClassFile FromPath(string path)
         {
             return new ClassFile

@@ -214,6 +214,7 @@ namespace StatiskAnalyse
             }
         }
 
+
         public static string TraceStringBuilder(ClassFile file, int line, string register)
         {
             var startLine = GetMethodStart(file, line);

@@ -22,8 +22,11 @@ namespace StatiskAnalyse
                     new IPv4RegexSearchHandler(),
                     //new IPv6RegexSearchHandler(),
                     //new UrlRegexSearchHandler(),
-                    new ClassLoaderUsageSearchHandler(),
-                    new ExecutedCommandSearchHandler()
+                    //new ClassLoaderUsageSearchHandler(),
+                    //new ExecutedCommandSearchHandler(),
+                    new ReflectionSetAccesabillitySearchHandler(),
+                    new reflectionSearchHandler(),
+
                 },
                 ConstantStringSearchHandlers =
                 {
@@ -40,8 +43,8 @@ namespace StatiskAnalyse
                     new LibrarySearchHandler()
                 }
             };
-            var apks = Directory.EnumerateFiles(ApkFolder, "*.apk")
-                .Where(x => x.Contains("Amaze"));
+            var apks = Directory.EnumerateFiles(ApkFolder, "*.apk");
+                //.Where(x => x.Contains("Amaze"));
             //.Take(3);
             //.Where(x => x.Contains("Hotspot Shield Free") || x.Contains("Amaze") || x.Contains("Fly") || x.Contains("Ghost"));
 

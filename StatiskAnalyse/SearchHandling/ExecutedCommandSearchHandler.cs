@@ -44,7 +44,7 @@ namespace StatiskAnalyse.SearchHandling
                 };
             }).Cast<object>().ToList();
 
-        }
+         }
 
         public Regex Regex { get; } = new Regex(" *invoke-virtual {[vp]\\d+, ([^}]+)}, Ljava\\/lang\\/Runtime;->exec\\(([^)(]+)\\)([^ :;]+);?", RegexOptions.Compiled);
     }
